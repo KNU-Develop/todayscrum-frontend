@@ -5,12 +5,14 @@ export {
 } from './constants/header-key'
 
 // USER
-export type { UserInfoResponse } from './services/user/model'
 export { UserStatus } from './services/user/model'
+export type { UserInfoResponse } from './services/user/model'
 export {
-  userOptions,
+  useEditUserMutation,
   useUserInfoQuery,
-  useUserInfoMutation,
+  useUserOptionalMutation,
+  useUserSignUpMutation,
+  userOptions,
 } from './services/user/quries'
 export { userService } from './services/user/service'
 

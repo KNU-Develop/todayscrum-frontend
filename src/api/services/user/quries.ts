@@ -1,23 +1,34 @@
 'use client'
 
+import { CustomQueryOptions } from '@/api/type'
 import {
-  Query,
+  MutationOptions,
   QueryClient,
   useMutation,
   useQuery,
   useQueryClient,
 } from '@tanstack/react-query'
+import {
+  EditUserInfoDTO,
+  UserInfoResponse,
+  UserOptionalInfoDTO,
+  UserSignUpDTO,
+} from './model'
 import { userService } from './service'
-import { CustomQueryOptions } from '@/api/type'
-import { DefaultResponse, UserInfoDTO, UserInfoResponse } from './model'
 
 export const userOptions = {
   userInfo: (client: QueryClient) => ({
     queryKey: [],
     queryFn: () => userService.userInfo(client),
   }),
-  userEdit: (client: QueryClient, dto: UserInfoDTO) => ({
-    queryFn: () => userService.userEdit(client, dto),
+  useSignUp: (client: QueryClient, dto: UserSignUpDTO) => ({
+    mutationFn: () => userService.userSignUp(client, dto),
+  }),
+  useOptional: (client: QueryClient, dto: UserOptionalInfoDTO) => ({
+    mutationFn: () => userService.userOptionalInfo(client, dto),
+  }),
+  userEdit: (client: QueryClient, dto: EditUserInfoDTO) => ({
+    mutationFn: () => userService.userEdit(client, dto),
   }),
 }
 
@@ -32,13 +43,37 @@ export const useUserInfoQuery = (
   })
 }
 
-export const useUserInfoMutation = (
-  dto: UserInfoDTO,
-  options: CustomQueryOptions<DefaultResponse> = {},
+export const useUserSignUpMutation = (
+  dto: UserSignUpDTO,
+  options: MutationOptions = {},
 ) => {
   const queryClient = useQueryClient()
 
-  return useMutation<DefaultResponse>({
+  return useMutation({
+    ...userOptions.useSignUp(queryClient, dto),
+    ...options,
+  })
+}
+
+export const useUserOptionalMutation = (
+  dto: UserOptionalInfoDTO,
+  options: MutationOptions = {},
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...userOptions.useOptional(queryClient, dto),
+    ...options,
+  })
+}
+
+export const useEditUserMutation = (
+  dto: EditUserInfoDTO,
+  options: MutationOptions = {},
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
     ...userOptions.userEdit(queryClient, dto),
     ...options,
   })
