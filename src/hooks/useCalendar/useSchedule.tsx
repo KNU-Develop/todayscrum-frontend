@@ -2,6 +2,25 @@ import * as React from 'react'
 import { useSchedulesQuery } from '@/api'
 import { Schedule, Schedules } from '@/api/services/schedule/model'
 
+const iterateSchedules = (
+  schedules: Schedules,
+  callback: (year: number, month: number, schedule: Schedule) => void,
+) => {
+  Object.keys(schedules)
+    .map(Number)
+    .sort((a, b) => a - b)
+    .forEach((year) => {
+      Object.keys(schedules[year])
+        .map(Number)
+        .sort((a, b) => a - b)
+        .forEach((month) => {
+          schedules[year][month].forEach((schedule) => {
+            callback(year, month, schedule)
+          })
+        })
+    })
+}
+
 const getAllFutureSchedules = (
   schedules: Schedules,
   year: number,
@@ -10,47 +29,32 @@ const getAllFutureSchedules = (
 ) => {
   const futureSchedules: { [year: number]: { [month: number]: Schedule[] } } =
     {}
-  const years = Object.keys(schedules)
-    .map(Number)
-    .sort((a, b) => a - b)
 
-  for (const y of years) {
-    const months = Object.keys(schedules[y])
-      .map(Number)
-      .sort((a, b) => a - b)
-    futureSchedules[y] = {}
-    for (const m of months) {
-      if (y > year || (y === year && m > month)) {
-        futureSchedules[y][m] = schedules[y][m]
-      } else if (y === year && m === month) {
-        futureSchedules[y][m] = schedules[y][m].filter(
-          (schedule: Schedule) => schedule.date >= today,
-        )
-      }
+  iterateSchedules(schedules, (y, m, schedule) => {
+    if (y > year || (y === year && m > month)) {
+      if (!futureSchedules[y]) futureSchedules[y] = {}
+      if (!futureSchedules[y][m]) futureSchedules[y][m] = []
+      futureSchedules[y][m].push(schedule)
+    } else if (y === year && m === month) {
+      if (!futureSchedules[y]) futureSchedules[y] = {}
+      if (!futureSchedules[y][m]) futureSchedules[y][m] = []
+      if (schedule.date >= today) futureSchedules[y][m].push(schedule)
     }
-  }
+  })
 
   return futureSchedules
 }
 
 const groupSchedulesByDate = (schedules: Schedules) => {
-  return Object.entries(schedules).reduce(
-    (acc: { [key: string]: Schedule[] }, [year, months]) => {
-      Object.entries(months as { [key: string]: Schedule[] }).forEach(
-        ([month, schedules]) => {
-          schedules.forEach((schedule) => {
-            const key = `${year}-${month}-${schedule.date}`
-            if (!acc[key]) {
-              acc[key] = []
-            }
-            acc[key].push(schedule)
-          })
-        },
-      )
-      return acc
-    },
-    {},
-  )
+  const groupedSchedules: { [key: string]: Schedule[] } = {}
+
+  iterateSchedules(schedules, (year, month, schedule) => {
+    const key = `${year}-${month}-${schedule.date}`
+    if (!groupedSchedules[key]) groupedSchedules[key] = []
+    groupedSchedules[key].push(schedule)
+  })
+
+  return groupedSchedules
 }
 
 export const useFutureSchedules = () => {
