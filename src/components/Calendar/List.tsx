@@ -1,22 +1,15 @@
 'use client'
 import * as React from 'react'
-import { CalendarHeader } from './CalendarHeader'
-import { schedules } from './data/schedules'
-
-interface Schedule {
-  date: number
-  time: string
-  description: string
-  project: string
-}
+import { useSchedulesQuery } from '@/api'
+import { Schedule, Schedules } from '@/api/services/schedule/model'
 
 export function List() {
   const [month, setMonth] = React.useState(new Date().getMonth() + 1)
   const [year, setYear] = React.useState(new Date().getFullYear())
   const [today, setToday] = React.useState(new Date().getDate())
-  const firstScheduleRef = React.useRef<HTMLDivElement>(null)
+  const { data } = useSchedulesQuery()
 
-  const getAllFutureSchedules = () => {
+  const getAllFutureSchedules = (schedules: Schedules) => {
     const futureSchedules: { [year: number]: { [month: number]: Schedule[] } } =
       {}
     const years = Object.keys(schedules)
@@ -33,7 +26,7 @@ export function List() {
           futureSchedules[y][m] = schedules[y][m]
         } else if (y === year && m === month) {
           futureSchedules[y][m] = schedules[y][m].filter(
-            (schedule) => schedule.date >= today,
+            (schedule: Schedule) => schedule.date >= today,
           )
         }
       }
@@ -42,21 +35,28 @@ export function List() {
     return futureSchedules
   }
 
-  const [currentSchedules, setCurrentSchedules] = React.useState(
-    getAllFutureSchedules(),
-  )
+  const [currentSchedules, setCurrentSchedules] = React.useState<Schedules>({})
+
+  React.useEffect(() => {
+    if (data && data.result) {
+      console.log('Fetched schedules:', data.result)
+      setCurrentSchedules(getAllFutureSchedules(data.result))
+    }
+  }, [data, year, month, today])
 
   const groupedSchedules = Object.entries(currentSchedules).reduce(
     (acc: { [key: string]: Schedule[] }, [year, months]) => {
-      Object.entries(months).forEach(([month, schedules]) => {
-        schedules.forEach((schedule) => {
-          const key = `${year}-${month}-${schedule.date}`
-          if (!acc[key]) {
-            acc[key] = []
-          }
-          acc[key].push(schedule)
-        })
-      })
+      Object.entries(months as { [key: string]: Schedule[] }).forEach(
+        ([month, schedules]) => {
+          schedules.forEach((schedule) => {
+            const key = `${year}-${month}-${schedule.date}`
+            if (!acc[key]) {
+              acc[key] = []
+            }
+            acc[key].push(schedule)
+          })
+        },
+      )
       return acc
     },
     {},
@@ -81,14 +81,6 @@ export function List() {
 
   return (
     <div className="flex h-full w-[864px] flex-shrink-0 flex-col items-start gap-[10px] p-4">
-      <CalendarHeader
-        view="month"
-        month={month}
-        year={year}
-        onPrev={() => {}}
-        onNext={() => {}}
-        onToday={() => {}}
-      />
       <div className="h-[1px] w-[832px] bg-gray-300" />
       <div className="w-full">
         {Object.entries(groupedSchedules).map(([key, schedules]) => {
@@ -98,7 +90,7 @@ export function List() {
               key={key}
               className="flex items-start gap-[10px] self-stretch border-b border-slate-300 p-[10px]"
             >
-              <div className="itmes-center flex w-[130px] gap-3 px-4 py-1">
+              <div className="flex w-[130px] items-center gap-3 px-4 py-1">
                 <p className="w-7 text-center text-lead">
                   {formatDate(Number(date))}
                 </p>

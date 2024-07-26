@@ -27,7 +27,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   onToday,
 }) => {
   return (
-    <div className="flex items-center justify-between self-stretch">
+    <div className="flex w-[864px] items-center justify-between self-stretch px-4">
       <div className="flex items-center gap-[16px]">
         <p className="text-h3">
           {year}년 {month}월
