@@ -11,7 +11,7 @@ import { CustomQueryOptions } from '@/api/type'
 
 export const scheduleOptions = {
   getSchedules: (client: QueryClient) => ({
-    queryKey: [],
+    queryKey: ['schedule'],
     queryFn: () => scheduleService.getSchedules(client),
   }),
   addSchedule: (client: QueryClient, dto: AddScheduleDTO) => ({

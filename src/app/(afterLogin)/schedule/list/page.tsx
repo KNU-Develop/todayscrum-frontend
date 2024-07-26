@@ -2,17 +2,17 @@
 import * as React from 'react'
 import { List } from '@/components/Calendar/List'
 import { CalendarHeader } from '@/components/Calendar/CalendarHeader'
+import { useCalendar } from '@/hooks/useCalendar'
 
 export default function page() {
-  const [month, setMonth] = React.useState(new Date().getMonth() + 1)
-  const [year, setYear] = React.useState(new Date().getFullYear())
-  const [today, setToday] = React.useState(new Date().getDate())
+  const { state, formatMonth } = useCalendar()
+
   return (
     <div>
       <CalendarHeader
         view="month"
-        month={month}
-        year={year}
+        month={formatMonth(state.month)}
+        year={state.year}
         onPrev={() => {}}
         onNext={() => {}}
         onToday={() => {}}

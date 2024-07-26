@@ -2,6 +2,7 @@
 
 import * as React from 'react'
 import { useSchedulesQuery } from '@/api'
+import { generateCalendar } from '@/hooks/useCalendar'
 import {
   weekClass,
   yoilClass,
@@ -10,93 +11,28 @@ import {
   getProjectColorClass,
 } from './style'
 
-const daysInMonth = (year: number, month: number) => {
-  return new Date(year, month, 0).getDate()
-}
-
-const getFirstDayofMonth = (year: number, month: number) => {
-  return new Date(year, month - 1, 1).getDay()
-}
-
-const getPreviousMonthDays = (year: number, month: number) => {
-  const prevMonth = month === 1 ? 12 : month - 1
-  const prevYear = month === 1 ? year - 1 : year
-  return daysInMonth(prevYear, prevMonth)
-}
-
 interface MonthlyProps {
-  month: number
+  month: string
   year: number
 }
 
 export function Monthly({ month, year }: MonthlyProps) {
-  const { data } = useSchedulesQuery()
-
   const yoils = ['일', '월', '화', '수', '목', '금', '토']
+  const weeks = generateCalendar(year, parseInt(month))
 
-  const days = daysInMonth(year, month)
-  const firstDay = getFirstDayofMonth(year, month)
-  const prevMonthDays = getPreviousMonthDays(year, month)
-
-  const generateCalendar = () => {
-    const weeks = []
-    let week = Array(7).fill('')
-    let dayCounter = 1
-    let nextMonthDayCounter = 1
-
-    for (let i = firstDay - 1; i >= 0; i--) {
-      week[i] = { day: prevMonthDays - (firstDay - 1 - i), isThisMonth: false }
-    }
-
-    for (let i = firstDay; i < 7; i++) {
-      week[i] = { day: dayCounter++, isThisMonth: true }
-    }
-
-    weeks.push(week)
-
-    while (dayCounter <= days) {
-      week = Array(7).fill('')
-      for (let i = 0; i < 7 && dayCounter <= days; i++) {
-        week[i] = { day: dayCounter++, isThisMonth: true }
-      }
-      weeks.push(week)
-    }
-
-    if (weeks[weeks.length - 1].filter((day) => day !== '').length < 7) {
-      for (let i = 0; i < 7; i++) {
-        if (weeks[weeks.length - 1][i] === '') {
-          weeks[weeks.length - 1][i] = {
-            day: nextMonthDayCounter++,
-            isThisMonth: false,
-          }
-        }
-      }
-    }
-
-    while (weeks.length < 6) {
-      week = Array(7).fill('')
-      for (let i = 0; i < 7; i++) {
-        week[i] = { day: nextMonthDayCounter++, isThisMonth: false }
-      }
-      weeks.push(week)
-    }
-    return weeks
-  }
-
-  const weeks = generateCalendar()
-
+  const { data } = useSchedulesQuery()
   const getSchedulesForDay = (day: number, isThisMonth: boolean) => {
-    if (isThisMonth && data?.result[year]?.[month]) {
-      return data.result[year][month].filter(
+    if (isThisMonth && data?.result[year]?.[parseInt(month)]) {
+      return data.result[year][parseInt(month)].filter(
         (schedule) => schedule.date === day,
       )
     }
 
     if (!isThisMonth) {
-      const prevMonth = month === 1 ? 12 : month - 1
-      const prevYear = month === 1 ? year - 1 : year
-      const nextMonth = month === 1 ? 12 : month + 1
-      const nextYear = month === 1 ? year + 1 : year
+      const prevMonth = parseInt(month) === 1 ? 12 : parseInt(month) - 1
+      const prevYear = parseInt(month) === 1 ? year - 1 : year
+      const nextMonth = parseInt(month) === 12 ? 1 : parseInt(month) + 1
+      const nextYear = parseInt(month) === 12 ? year + 1 : year
 
       if (data?.result[prevYear]?.[prevMonth] && day > 15) {
         return data.result[prevYear][prevMonth].filter(
@@ -141,7 +77,7 @@ export function Monthly({ month, year }: MonthlyProps) {
       <div className="h-[1px] w-[832px] bg-gray-300" />
       <div
         className={
-          'itmes-start flex h-[764px] flex-shrink-0 flex-col self-stretch rounded-[4px] border-r border-t border-gray-200'
+          'flex h-[764px] flex-shrink-0 flex-col items-start self-stretch rounded-[4px] border-r border-t border-gray-200'
         }
       >
         {weeks.map((week, weekIndex) => (

@@ -1,13 +1,13 @@
 'use client'
 import React from 'react'
 import { Button } from '../ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, PlusIcon } from 'lucide-react'
 import { Icon } from '../Icon'
 
 type ViewType = 'month' | 'week' | 'day'
 interface CalendarHeaderProps {
   view: ViewType
-  month?: number
+  month?: string
   year?: number
   week?: number
   day?: number
@@ -29,7 +29,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
   return (
     <div className="flex w-[864px] items-center justify-between self-stretch px-4">
       <div className="flex items-center gap-[16px]">
-        <p className="text-h3">
+        <p className="w-[140px] text-h3">
           {year}년 {month}월
         </p>
         <Button
@@ -55,7 +55,7 @@ export const CalendarHeader: React.FC<CalendarHeaderProps> = ({
       </div>
       <div className="flex items-center gap-3">
         <Button variant="outline" size="icon" className="h-8 w-8">
-          <Icon name="plus" />
+          <PlusIcon className="h-4 w-4" />
         </Button>
       </div>
     </div>

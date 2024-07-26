@@ -1,71 +1,11 @@
+// List.tsx
 'use client'
 import * as React from 'react'
-import { useSchedulesQuery } from '@/api'
-import { Schedule, Schedules } from '@/api/services/schedule/model'
+import { formatDate, useFutureSchedules } from '@/hooks/useCalendar'
 import { getDotColorClass } from './style'
 
 export function List() {
-  const [month, setMonth] = React.useState(new Date().getMonth() + 1)
-  const [year, setYear] = React.useState(new Date().getFullYear())
-  const [today, setToday] = React.useState(new Date().getDate())
-  const { data } = useSchedulesQuery()
-
-  const getAllFutureSchedules = (schedules: Schedules) => {
-    const futureSchedules: { [year: number]: { [month: number]: Schedule[] } } =
-      {}
-    const years = Object.keys(schedules)
-      .map(Number)
-      .sort((a, b) => a - b)
-
-    for (const y of years) {
-      const months = Object.keys(schedules[y])
-        .map(Number)
-        .sort((a, b) => a - b)
-      futureSchedules[y] = {}
-      for (const m of months) {
-        if (y > year || (y === year && m > month)) {
-          futureSchedules[y][m] = schedules[y][m]
-        } else if (y === year && m === month) {
-          futureSchedules[y][m] = schedules[y][m].filter(
-            (schedule: Schedule) => schedule.date >= today,
-          )
-        }
-      }
-    }
-
-    return futureSchedules
-  }
-
-  const [currentSchedules, setCurrentSchedules] = React.useState<Schedules>({})
-
-  React.useEffect(() => {
-    if (data && data.result) {
-      console.log('Fetched schedules:', data.result)
-      setCurrentSchedules(getAllFutureSchedules(data.result))
-    }
-  }, [data, year, month, today])
-
-  const groupedSchedules = Object.entries(currentSchedules).reduce(
-    (acc: { [key: string]: Schedule[] }, [year, months]) => {
-      Object.entries(months as { [key: string]: Schedule[] }).forEach(
-        ([month, schedules]) => {
-          schedules.forEach((schedule) => {
-            const key = `${year}-${month}-${schedule.date}`
-            if (!acc[key]) {
-              acc[key] = []
-            }
-            acc[key].push(schedule)
-          })
-        },
-      )
-      return acc
-    },
-    {},
-  )
-
-  const formatDate = (date: number) => {
-    return date.toString().padStart(2, '0')
-  }
+  const { groupedSchedules } = useFutureSchedules()
 
   return (
     <div className="flex h-full w-[864px] flex-shrink-0 flex-col items-start gap-[10px] p-4">
