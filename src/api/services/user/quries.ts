@@ -1,5 +1,3 @@
-'use client'
-
 import { CustomQueryOptions } from '@/api/type'
 import {
   MutationOptions,
@@ -18,7 +16,7 @@ import { userService } from './service'
 
 export const userOptions = {
   userInfo: (client: QueryClient) => ({
-    queryKey: [],
+    queryKey: ['user'],
     queryFn: () => userService.userInfo(client),
   }),
   useSignUp: (client: QueryClient, dto: UserSignUpDTO) => ({

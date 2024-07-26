@@ -3,8 +3,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 interface AvatarProps {
   imageUrl?: string
   name: string
-  width: string
-  height: string
+  size: string
 }
 
 export const getInitials = (name: string) => {
@@ -26,9 +25,10 @@ export const getInitials = (name: string) => {
   }
 }
 
-export function ProfileAvatar({ imageUrl, name, width, height }: AvatarProps) {
+export function ProfileAvatar({ imageUrl, name, size }: AvatarProps) {
+  const border = imageUrl ? 'border-white' : 'border-gray-200'
   return (
-    <Avatar width={width} height={height}>
+    <Avatar width={size} height={size} className={`border-2 ${border}`}>
       {imageUrl ? (
         <AvatarImage src={imageUrl} alt="Avatar Image" />
       ) : (

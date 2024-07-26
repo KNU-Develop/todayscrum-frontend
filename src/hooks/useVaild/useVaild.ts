@@ -40,7 +40,18 @@ const privacyField = z.boolean().refine((value) => value === true, {
   message: '이 항목을 체크해야 합니다.',
 })
 
-const mailField = z.boolean().optional()
+const marketingField = z.boolean().optional()
+
+const title = z.string().min(1, {
+  message: 'Username must be at least 2 characters.',
+})
+
+const period = z.object({
+  from: z.date(),
+  to: z.date(),
+})
+
+const description = z.string()
 
 export const formSchemaUserEdit = z.object({
   name: nameField,
@@ -59,7 +70,7 @@ export const formSchemaSignUp = z.object({
   phonenumber: phonenumberField,
   use: useField,
   privacy: privacyField,
-  mail: mailField,
+  marketing: marketingField,
 })
 
 export const formSchemaOptionalInfo = z.object({
@@ -67,6 +78,16 @@ export const formSchemaOptionalInfo = z.object({
   stack: stackField,
   MBTI: mbtiField,
   entries: entriesField,
+})
+
+export const formSchemaProject = z.object({
+  title: title,
+  period: period,
+  description: description,
+})
+
+export const formEmailProject = z.object({
+  email: emailField,
 })
 
 export const formatPhoneNumber = (value: string) => {

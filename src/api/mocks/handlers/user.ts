@@ -1,6 +1,5 @@
-import { http, HttpResponse } from 'msw'
-
 import { UserStatus } from '@/api/services/user/model'
+import { http, HttpResponse } from 'msw'
 
 export const userHandlers = [
   http.get(`${process.env.NEXT_PUBLIC_API_URL}/user/info`, () => {

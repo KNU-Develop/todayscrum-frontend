@@ -37,9 +37,15 @@ import * as React from 'react'
 import { z } from 'zod'
 
 import { toolList } from '@/api/services/user/model'
+import { getInitials } from '@/components/Avatar/Avatar'
 import { Icon } from '@/components/Icon'
-import { formatPhoneNumber } from '@/hook/useVaild'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { formatPhoneNumber } from '@/hooks/useVaild'
+import { format, getDay } from 'date-fns'
 import { UseFormReturn } from 'react-hook-form'
+import { Calendar } from '../ui/calendar'
+import { Checkbox } from '../ui/checkbox'
+import { Textarea } from '../ui/textarea'
 
 interface entry {
   tool: string
@@ -48,6 +54,24 @@ interface entry {
 
 interface formType {
   form: UseFormReturn<z.infer<any>>
+}
+
+interface defaultFormType {
+  form: UseFormReturn<z.infer<any>>
+  name: string
+  label: string
+  [key: string]: any
+}
+
+interface checkBoxFormType {
+  form: UseFormReturn<z.infer<any>>
+  name: 'use' | 'privacy' | 'marketing'
+}
+
+interface avatarFormType {
+  form: UseFormReturn<z.infer<any>>
+  imageUrl: string
+  setImageUrl: React.Dispatch<React.SetStateAction<string>>
 }
 
 interface infoFormType {
@@ -159,25 +183,6 @@ export const ToolInfoForm = ({ form, entries, setEntries }: infoFormType) => {
   )
 }
 
-export const StackInfoForm = ({ form }: formType) => (
-  <FormField
-    control={form.control}
-    name="stack"
-    render={({ field }) => (
-      <FormItem className="flex flex-col items-start gap-[6px] self-stretch">
-        <FormLabel className="text-p">기술 스택(쉼표로 구분)</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="기술스택"
-            value={field.value}
-            onChange={(e) => field.onChange(e.target.value)}
-          />
-        </FormControl>
-      </FormItem>
-    )}
-  />
-)
-
 export const MBITInfoForm = ({ form, value, setValue }: mbtiFormType) => {
   const [mbtiOpen, setMbtiOpen] = React.useState<boolean>(false)
 
@@ -273,45 +278,222 @@ export const PhoneInfoForm = ({ form }: formType) => (
             onChange={(e) => field.onChange(formatPhoneNumber(e.target.value))}
           />
         </FormControl>
-        {/* <FormMessage /> */}
+        <FormMessage />
       </FormItem>
     )}
   />
 )
 
-export const NameInfoForm = ({ form }: formType) => (
+export const AvatarInfoForm = ({
+  form,
+  imageUrl,
+  setImageUrl,
+}: avatarFormType) => {
+  const [icon, setIcon] = React.useState<'camera' | 'cancel'>(() =>
+    imageUrl ? 'cancel' : 'camera',
+  )
+
+  React.useEffect(() => {
+    setIcon(imageUrl ? 'cancel' : 'camera')
+  }, [imageUrl])
+
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+
+  const handleIconClick = () => {
+    if (icon == 'camera') {
+      if (fileInputRef.current) {
+        fileInputRef.current.click()
+      }
+    } else if (icon == 'cancel') {
+      setImageUrl('')
+      setIcon('camera')
+    }
+  }
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0]
+      const reader = new FileReader()
+      reader.onloadend = () => {
+        setImageUrl(reader.result as string)
+        setIcon('cancel')
+      }
+      reader.readAsDataURL(file)
+    }
+  }
+
+  return (
+    <FormField
+      control={form.control}
+      name="name"
+      render={({ field }) => (
+        <FormItem className="flex items-center justify-center gap-[10px] self-stretch">
+          <div className="relative">
+            <Avatar className="h-[90px] w-[90px] items-center justify-center overflow-hidden bg-slate-100">
+              <AvatarImage
+                src={imageUrl ?? ''}
+                alt="프로필 이미지"
+                className="h-full w-full object-cover"
+              />
+              <AvatarFallback>
+                {imageUrl ? '' : getInitials(form.getValues('name'))}
+              </AvatarFallback>
+            </Avatar>
+            <Icon
+              name={icon}
+              className="absolute right-1 top-1 cursor-pointer"
+              onClick={handleIconClick}
+            />
+          </div>
+          <input
+            type="file"
+            ref={fileInputRef}
+            style={{ display: 'none' }}
+            onChange={handleFileChange}
+            accept="image/*"
+          />
+          <div className="w-full">
+            <DefaultInputForm form={form} name="name" label="이름" />
+          </div>
+        </FormItem>
+      )}
+    />
+  )
+}
+
+export const DefaultInputForm = ({
+  form,
+  name,
+  label,
+  ...rest
+}: defaultFormType) => (
   <FormField
     control={form.control}
-    name="name"
+    name={name}
     render={({ field }) => (
       <FormItem className="flex flex-col items-start gap-[6px] self-stretch">
-        <FormLabel className="text-p">이름</FormLabel>
-        <FormControl>
-          <Input
-            placeholder="이름"
-            {...field}
-            value={field.value}
-            onChange={(e) => {
-              field.onChange(e.target.value)
-            }}
-          />
+        <FormLabel className="text-p">{label}</FormLabel>
+        <FormControl className="flex items-start gap-[8px] self-stretch">
+          <Input placeholder={label} {...rest} {...field} />
         </FormControl>
-        {/* <FormMessage /> */}
       </FormItem>
     )}
   />
 )
 
-export const EmailInfoForm = ({ form }: formType) => (
+export const DatePickerInfoForm = ({
+  form,
+  name,
+  label,
+  ...rest
+}: defaultFormType) => {
+  const formatDate = (date: Date) => {
+    const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][getDay(date)]
+    return `${format(date, 'yyyy.MM.dd')} (${dayOfWeek})`
+  }
+
+  return (
+    <FormField
+      control={form.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem className="flex flex-col items-start gap-[6px] self-stretch">
+          <FormLabel className="text-p">{label}</FormLabel>
+          <FormControl className="flex items-start gap-[8px] self-stretch">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Input
+                  {...rest}
+                  {...field}
+                  value={
+                    field.value?.from
+                      ? field.value.to
+                        ? `${formatDate(field.value.from)} ~ ${formatDate(field.value.to)}`
+                        : formatDate(field.value.from).toString()
+                      : ''
+                  }
+                  readOnly
+                />
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  initialFocus
+                  mode="range"
+                  // disabled={(date) => date <= new Date()}
+                  selected={field.value}
+                  onSelect={field.onChange}
+                  numberOfMonths={2}
+                />
+              </PopoverContent>
+            </Popover>
+          </FormControl>
+        </FormItem>
+      )}
+    />
+  )
+}
+
+export const TextAreaForm = ({
+  form,
+  name,
+  label,
+  ...rest
+}: defaultFormType) => (
   <FormField
     control={form.control}
-    name="email"
+    name={name}
     render={({ field }) => (
-      <FormItem className="flex flex-col items-start gap-[6px] self-stretch opacity-50">
-        <FormLabel className="text-p">로그인 계정</FormLabel>
+      <FormItem className="flex flex-col items-start gap-[6px] self-stretch">
+        <FormLabel className="text-p">{label}</FormLabel>
         <FormControl className="flex items-start gap-[8px] self-stretch">
-          <Input value={field.value} disabled={true} />
+          <div className="grid w-full gap-2">
+            <Textarea
+              placeholder={label}
+              {...rest}
+              {...field}
+              className="resize-none border border-gray-300 placeholder:text-gray-400"
+            />
+            <p className="text-right text-subtle">
+              <span className="text-black">
+                {field.value ? field.value.length : 0}
+              </span>
+              <span className="text-gray-400"> / 100</span>
+            </p>
+          </div>
         </FormControl>
+      </FormItem>
+    )}
+  />
+)
+
+export const CheckBoxForm = ({ form, name }: checkBoxFormType) => (
+  <FormField
+    control={form.control}
+    name={name}
+    render={({ field }) => (
+      <FormItem>
+        <FormLabel />
+        <FormControl>
+          <div className="flex items-start gap-[8px]">
+            <Checkbox
+              id={name}
+              checked={field.value}
+              onCheckedChange={field.onChange}
+            />
+            <label htmlFor={name} className="text-small text-gray-500">
+              {name === 'marketing' ? (
+                '마케팅 메일 수신 동의 (선택)'
+              ) : (
+                <>
+                  <span className="text-blue-500 underline">
+                    {name === 'use' ? '이용약관' : '개인정보'}
+                  </span>
+                  {name === 'use' ? ' 동의 (필수)' : ' 이용 동의 (필수)'}
+                </>
+              )}
+            </label>
+          </div>
+        </FormControl>
+        <FormMessage />
       </FormItem>
     )}
   />

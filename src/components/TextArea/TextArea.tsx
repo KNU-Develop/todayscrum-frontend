@@ -19,7 +19,7 @@ export function TextareaWithText({
   }
 
   return (
-    <div className="grid w-full gap-1.5 text-black font-Pretendard">
+    <div className="font-Pretendard grid w-full gap-1.5 text-black">
       <Label htmlFor="message-2" className="text-base">
         {label}
       </Label>
@@ -28,9 +28,9 @@ export function TextareaWithText({
         placeholder={label}
         value={text}
         onChange={handleChange}
-        className="placeholder:text-gray-400 border border-gray-300"
+        className="resize-none border border-gray-300 placeholder:text-gray-400"
       />
-      <p className="text-sm text-muted-foreground text-right font-normal leading-5">
+      <p className="text-right text-sm font-normal leading-5 text-muted-foreground">
         <span className="text-black">{text.length}</span>
         <span className="text-gray-400">/{maxLength}</span>
       </p>

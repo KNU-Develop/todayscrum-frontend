@@ -20,6 +20,7 @@ export enum ModalTypes {
   CREATE,
   EDIT,
   DELETE,
+  INVITE,
   NULL,
 }
 

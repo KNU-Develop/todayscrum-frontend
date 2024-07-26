@@ -2,23 +2,19 @@
 import * as React from 'react'
 
 import { Button } from '@/components/ui/button'
-import { Form, FormField, FormItem } from '@/components/ui/form'
-import { SubmitHandler, useForm } from 'react-hook-form'
+import { Form } from '@/components/ui/form'
+import { useForm } from 'react-hook-form'
 
 import { useEditUserMutation, useUserInfoQuery } from '@/api'
-import { getInitials } from '@/components/Avatar/Avatar'
-import { Icon } from '@/components/Icon'
+
 import {
-  AddressInfoForm,
-  EmailInfoForm,
+  AvatarInfoForm,
+  DefaultInputForm,
   MBITInfoForm,
-  NameInfoForm,
   PhoneInfoForm,
-  StackInfoForm,
   ToolInfoForm,
 } from '@/components/InputForm'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { formSchemaUserEdit } from '@/hook/useVaild'
+import { formSchemaUserEdit } from '@/hooks/useVaild'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
 import { z } from 'zod'
@@ -30,12 +26,8 @@ const profileEdit: React.FC = () => {
   >([])
   const [value, setValue] = React.useState<string>('')
   const [imageUrl, setImageUrl] = React.useState<string>('')
-  const fileInputRef = React.useRef<HTMLInputElement>(null)
-  const [icon, setIcon] = React.useState<'camera' | 'cancel'>(() =>
-    imageUrl ? 'cancel' : 'camera',
-  )
 
-  const { data } = useUserInfoQuery()
+  const { data, isLoading } = useUserInfoQuery()
 
   const form = useForm<z.infer<typeof formSchemaUserEdit>>({
     resolver: zodResolver(formSchemaUserEdit),
@@ -86,32 +78,10 @@ const profileEdit: React.FC = () => {
           ),
           imageUrl: imageUrl,
         }),
-          router.push('/')
+          router.push('/workspace')
       },
     },
   )
-
-  const handleIconClick = () => {
-    if (icon == 'camera') {
-      if (fileInputRef.current) {
-        fileInputRef.current.click()
-      }
-    } else if (icon == 'cancel') {
-      setImageUrl('')
-      setIcon('camera')
-    }
-  }
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0]
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImageUrl(reader.result as string)
-        setIcon('cancel')
-      }
-      reader.readAsDataURL(file)
-    }
-  }
 
   React.useEffect(() => {
     if (data !== undefined) {
@@ -128,53 +98,19 @@ const profileEdit: React.FC = () => {
       form.setValue('stack', data.result.stack.join(', '))
       form.setValue('MBTI', data.result.MBTI)
       setImageUrl(data.result.imageUrl || '')
-      setIcon(data.result.imageUrl ? 'cancel' : 'camera')
     }
   }, [data])
 
-  const onSubmit: SubmitHandler<z.infer<typeof formSchemaUserEdit>> = async (
-    values,
-  ) => {
+  const onSubmit = () => {
     editUserMutation.mutate()
-    // const userInfo: EditUserInfoDTO = {
-    //   name: values.name,
-    //   tool: Object.fromEntries(
-    //     entries.map((entry) => [entry.tool, entry.email]),
-    //   ),
-    //   phone: values.phonenumber,
-    //   address: values.address,
-    //   stack: values.stack
-    //     .split(',')
-    //     .map((stack) => stack.trim())
-    //     .filter((stack) => stack !== ''),
-    //   MBTI: values.MBTI,
-    //   imageUrl: imageUrl,
-    // }
-    // try {
-    //   const response = await fetch('/user/edit', {
-    //     method: 'PUT',
-    //     headers: {
-    //       'Content-Type': 'application/json',
-    //     },
-    //     body: JSON.stringify(userInfo),
-    //   })
-    //   if (response.ok) {
-    //     console.log('Success:', userInfo)
-    //     router.push('/workspace')
-    //   } else {
-    //     console.error('Failed to submit form')
-    //   }
-    // } catch (error) {
-    //   console.error('Error:', error)
-    // }
   }
 
-  if (data == null) {
-    return <div>DATA ERROR</div>
+  if (isLoading) {
+    return null
   }
 
   return (
-    <div className="flex h-screen w-screen items-center justify-center font-pretendard">
+    <div className="mt-[-80px] flex h-full items-center justify-center">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
@@ -184,41 +120,16 @@ const profileEdit: React.FC = () => {
             <p className="text-center text-h4">프로필 정보</p>
           </div>
           <div className="flex flex-col items-start gap-[16px] self-stretch">
-            <EmailInfoForm form={form} />
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem className="flex items-center justify-center gap-[10px] self-stretch">
-                  <div className="relative">
-                    <Avatar className="h-[90px] w-[90px] items-center justify-center overflow-hidden bg-slate-100">
-                      <AvatarImage
-                        src={imageUrl ?? ''}
-                        alt="프로필 이미지"
-                        className="h-full w-full object-cover"
-                      />
-                      <AvatarFallback>
-                        {imageUrl ? '' : getInitials(form.getValues('name'))}
-                      </AvatarFallback>
-                    </Avatar>
-                    <Icon
-                      name={icon}
-                      className="absolute right-1 top-1 cursor-pointer"
-                      onClick={handleIconClick}
-                    />
-                  </div>
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    style={{ display: 'none' }}
-                    onChange={handleFileChange}
-                    accept="image/*"
-                  />
-                  <div className="w-full">
-                    <NameInfoForm form={form} />
-                  </div>
-                </FormItem>
-              )}
+            <DefaultInputForm
+              form={form}
+              name="email"
+              label="로그인 정보"
+              disabled={true}
+            />
+            <AvatarInfoForm
+              form={form}
+              imageUrl={imageUrl}
+              setImageUrl={setImageUrl}
             />
             <ToolInfoForm
               form={form}
@@ -226,8 +137,13 @@ const profileEdit: React.FC = () => {
               setEntries={setEntries}
             />
             <PhoneInfoForm form={form} />
-            <AddressInfoForm form={form} />
-            <StackInfoForm form={form} />
+            <DefaultInputForm form={form} name="address" label="거주지역" />
+            <DefaultInputForm
+              form={form}
+              name="stack"
+              label="기술스택(쉼포로 구분)"
+              placeholder="기술스택"
+            />
             <MBITInfoForm form={form} value={value} setValue={setValue} />
 
             <div className="itmes-center flex justify-end gap-[8px] self-stretch">

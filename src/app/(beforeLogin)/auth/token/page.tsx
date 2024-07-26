@@ -1,11 +1,11 @@
 'use client'
 
+import { userService } from '@/api'
+import { UserStatus } from '@/api/services/user/model'
+import { useQueryClient } from '@tanstack/react-query'
 import Cookies from 'js-cookie'
 import { useRouter } from 'next/navigation'
 import { useEffect } from 'react'
-import { useQueryClient } from '@tanstack/react-query'
-import { userService } from '@/api'
-import { UserStatus } from '@/api/services/user/model'
 
 interface AuthCallbackQueryParams {
   searchParams: {
@@ -35,7 +35,7 @@ const AuthCallbackPage = ({
       const isRegistered = userInfo.result.status === UserStatus.Registered
 
       if (isRegistered) {
-        router.push('/')
+        router.push('/workspace')
         return
       }
       router.push('/signup')

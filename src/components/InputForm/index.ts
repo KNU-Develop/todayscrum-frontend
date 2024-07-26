@@ -1,9 +1,11 @@
 export {
   AddressInfoForm,
-  EmailInfoForm,
+  AvatarInfoForm,
+  CheckBoxForm,
+  DatePickerInfoForm,
+  DefaultInputForm,
   MBITInfoForm,
-  NameInfoForm,
   PhoneInfoForm,
-  StackInfoForm,
+  TextAreaForm,
   ToolInfoForm,
 } from './InputForm'

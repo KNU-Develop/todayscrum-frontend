@@ -1,31 +1,19 @@
-'use client'
-
-import { useUserInfoMutation, useUserInfoQuery } from '@/api'
+import { Button } from '@/components/ui/button'
+import Link from 'next/link'
 
 export default function Home() {
-  const { data } = useUserInfoQuery()
-  // const userInfoMutation = useUserInfoMutation({
-  //   name: 'string',
-  //   phone: 'string',
-  //   requiredTermsAgree: true,
-  //   marketingEmailOptIn: false,
-  // })
-
-  if (data == null) {
-    return <div>DATA ERROR</div>
-  }
-
   return (
-    <main>
-      <h1 className="text-h1">name: {data.result.name}</h1>
-      <h1 className="text-h1">email: {data.result.email}</h1>
-      <div
-        // disable={userInfoMutation.isPending}
-        role="presentation"
-        onClick={() => {
-          // userInfoMutation.mutate()
-        }}
-      ></div>
+    <main className="flex h-screen flex-col items-center justify-center gap-4 p-10">
+      <Link href="/workspace" prefetch>
+        <Button className="w-[300px]">
+          <p>워크스페이스로 이동하기</p>
+        </Button>
+      </Link>
+      <Link href="/login">
+        <Button className="w-[300px]">
+          <p>로그인 하기</p>
+        </Button>
+      </Link>
     </main>
   )
 }
