@@ -1,7 +1,8 @@
 'use client'
 
 import * as React from 'react'
-import { CalendarHeader } from './CalendarHeader'
+import { useSchedulesQuery } from '@/api'
+import { Schedule, Schedules } from '@/api/services/schedule/model'
 
 const daysInMonth = (year: number, month: number) => {
   return new Date(year, month, 0).getDate()
@@ -17,9 +18,13 @@ const getPreviousMonthDays = (year: number, month: number) => {
   return daysInMonth(prevYear, prevMonth)
 }
 
-export function Monthly() {
-  const [month, setMonth] = React.useState(new Date().getMonth() + 1)
-  const [year, setYear] = React.useState(new Date().getFullYear())
+interface MonthlyProps {
+  month: number
+  year: number
+}
+
+export function Monthly({ month, year }: MonthlyProps) {
+  const { data } = useSchedulesQuery()
 
   const weekClass =
     'flex justify-between items-center flex-[1_0_0] self-stretch'
@@ -81,40 +86,30 @@ export function Monthly() {
 
   const weeks = generateCalendar()
 
-  const handlePrevMonth = React.useCallback(() => {
-    if (month === 1) {
-      setMonth(12)
-      setYear(year - 1)
-    } else {
-      setMonth(month - 1)
+  const getSchedulesForDay = (day: number) => {
+    if (data?.result[year]?.[month]) {
+      return data.result[year][month].filter(
+        (schedule) => schedule.date === day,
+      )
     }
-  }, [month, year])
+    return []
+  }
 
-  const handleNextMonth = React.useCallback(() => {
-    if (month === 12) {
-      setMonth(1)
-      setYear(year + 1)
-    } else {
-      setMonth(month + 1)
+  const getProjectColorClass = (project: string) => {
+    switch (project) {
+      case 'A':
+        return 'bg-cyan-100'
+      case 'B':
+        return 'bg-red-100'
+      case 'C':
+        return 'bg-orange-100'
+      default:
+        return 'bg-gray-100'
     }
-  }, [month, year])
-
-  const handleToday = React.useCallback(() => {
-    const today = new Date()
-    setMonth(today.getMonth() + 1)
-    setYear(today.getFullYear())
-  }, [])
+  }
 
   return (
     <div className="flex h-[932px] w-[864px] flex-shrink-0 flex-col items-start gap-[10px] p-4">
-      <CalendarHeader
-        view="month"
-        month={month}
-        year={year}
-        onPrev={handlePrevMonth}
-        onNext={handleNextMonth}
-        onToday={handleToday}
-      />
       <div className="flex items-center justify-between self-stretch">
         {yoils.map((yoil) => (
           <p
@@ -133,14 +128,38 @@ export function Monthly() {
       >
         {weeks.map((week, weekIndex) => (
           <div className={weekClass} key={weekIndex}>
-            {week.map(({ day, isThisMonth }, dayIndex) => (
-              <div
-                className={`${dayClass} ${isThisMonth ? '' : 'text-gray-300'}`}
-                key={dayIndex}
-              >
-                {day}
-              </div>
-            ))}
+            {week.map(({ day, isThisMonth }, dayIndex) => {
+              const schedules = getSchedulesForDay(day)
+              return (
+                <div
+                  className={`${dayClass} ${isThisMonth ? '' : 'text-gray-300'}`}
+                  key={dayIndex}
+                >
+                  <div className="flex h-6 flex-col">
+                    {day !== '' && (
+                      <>
+                        <p>{day}</p>
+                        <div className="flex flex-col gap-1">
+                          {schedules.map((schedule, index) => (
+                            <div
+                              key={index}
+                              className={`flex w-[119px] items-center gap-2 rounded-[5px] ${getProjectColorClass(schedule.project)}`}
+                            >
+                              <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-1 overflow-hidden text-ellipsis text-detail">
+                                {schedule.time}
+                              </p>
+                              <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-1 overflow-hidden text-ellipsis text-detail">
+                                {schedule.description}
+                              </p>
+                            </div>
+                          ))}
+                        </div>
+                      </>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
           </div>
         ))}
       </div>
