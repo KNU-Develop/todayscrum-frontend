@@ -2,6 +2,7 @@
 import * as React from 'react'
 import { useSchedulesQuery } from '@/api'
 import { Schedule, Schedules } from '@/api/services/schedule/model'
+import { getDotColorClass } from './style'
 
 export function List() {
   const [month, setMonth] = React.useState(new Date().getMonth() + 1)
@@ -62,19 +63,6 @@ export function List() {
     {},
   )
 
-  const getProjectColorClass = (project: string) => {
-    switch (project) {
-      case 'A':
-        return 'bg-cyan-500'
-      case 'B':
-        return 'bg-red-500'
-      case 'C':
-        return 'bg-orange-500'
-      default:
-        return 'bg-gray-300'
-    }
-  }
-
   const formatDate = (date: number) => {
     return date.toString().padStart(2, '0')
   }
@@ -105,10 +93,10 @@ export function List() {
                   >
                     <div className="flex items-center gap-2 self-stretch">
                       <div
-                        className={`h-2 w-2 rounded-full ${getProjectColorClass(schedule.project)}`}
+                        className={`h-2 w-2 rounded-full ${getDotColorClass(schedule.project)}`}
                       />
-                      <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-2 w-[100px] text-body">
-                        {schedule.time}
+                      <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-2 w-[130px] text-body">
+                        {schedule.isAllday ? '하루종일' : schedule.time}
                       </p>
                     </div>
                     <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-1 flex-[1_0_0]">

@@ -2,7 +2,13 @@
 
 import * as React from 'react'
 import { useSchedulesQuery } from '@/api'
-import { Schedule, Schedules } from '@/api/services/schedule/model'
+import {
+  weekClass,
+  yoilClass,
+  dayClass,
+  getDotColorClass,
+  getProjectColorClass,
+} from './style'
 
 const daysInMonth = (year: number, month: number) => {
   return new Date(year, month, 0).getDate()
@@ -25,13 +31,6 @@ interface MonthlyProps {
 
 export function Monthly({ month, year }: MonthlyProps) {
   const { data } = useSchedulesQuery()
-
-  const weekClass =
-    'flex justify-between items-center flex-[1_0_0] self-stretch'
-  const yoilClass =
-    'flex h-12 flex-[1_0_0] basis-0 items-center justify-center gap-[10px] text-large'
-  const dayClass =
-    'flex p-2 items-start gap-[10px] flex-[1_0_0] self-stretch border-b border-l border-gray-200 text-large'
 
   const yoils = ['일', '월', '화', '수', '목', '금', '토']
 
@@ -86,26 +85,45 @@ export function Monthly({ month, year }: MonthlyProps) {
 
   const weeks = generateCalendar()
 
-  const getSchedulesForDay = (day: number) => {
-    if (data?.result[year]?.[month]) {
+  const getSchedulesForDay = (day: number, isThisMonth: boolean) => {
+    if (isThisMonth && data?.result[year]?.[month]) {
       return data.result[year][month].filter(
         (schedule) => schedule.date === day,
       )
     }
+
+    if (!isThisMonth) {
+      const prevMonth = month === 1 ? 12 : month - 1
+      const prevYear = month === 1 ? year - 1 : year
+      const nextMonth = month === 1 ? 12 : month + 1
+      const nextYear = month === 1 ? year + 1 : year
+
+      if (data?.result[prevYear]?.[prevMonth] && day > 15) {
+        return data.result[prevYear][prevMonth].filter(
+          (schedule) => schedule.date === day,
+        )
+      } else if (data?.result[nextYear]?.[nextMonth] && day < 15) {
+        return data.result[nextYear][nextMonth].filter(
+          (schedule) => schedule.date === day,
+        )
+      }
+    }
     return []
   }
 
-  const getProjectColorClass = (project: string) => {
-    switch (project) {
-      case 'A':
-        return 'bg-cyan-100'
-      case 'B':
-        return 'bg-red-100'
-      case 'C':
-        return 'bg-orange-100'
-      default:
-        return 'bg-gray-100'
+  const formatTime = (time: string) => {
+    if (!time) return ''
+
+    const [startTime] = time.split('~')
+    const [period, timePart] = startTime.trim().split(' ')
+    let [hour, minute] = timePart.split(':')
+
+    if (period === '오후') {
+      hour = String(parseInt(hour) + 12)
     }
+    minute = minute || '00'
+
+    return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`
   }
 
   return (
@@ -129,26 +147,29 @@ export function Monthly({ month, year }: MonthlyProps) {
         {weeks.map((week, weekIndex) => (
           <div className={weekClass} key={weekIndex}>
             {week.map(({ day, isThisMonth }, dayIndex) => {
-              const schedules = getSchedulesForDay(day)
+              const schedules = getSchedulesForDay(day, isThisMonth)
               return (
                 <div
                   className={`${dayClass} ${isThisMonth ? '' : 'text-gray-300'}`}
                   key={dayIndex}
                 >
-                  <div className="flex h-6 flex-col">
+                  <div className="flex h-6 w-full flex-col">
                     {day !== '' && (
                       <>
-                        <p>{day}</p>
-                        <div className="flex flex-col gap-1">
+                        <p className="p-2">{day}</p>
+                        <div className="flex flex-col gap-[2px]">
                           {schedules.map((schedule, index) => (
                             <div
                               key={index}
-                              className={`flex w-[119px] items-center gap-2 rounded-[5px] ${getProjectColorClass(schedule.project)}`}
+                              className={`flex h-[25px] items-center gap-[5px] overflow-hidden text-ellipsis rounded-[5px] pl-1 ${getProjectColorClass(schedule.project)}`}
                             >
-                              <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-1 overflow-hidden text-ellipsis text-detail">
-                                {schedule.time}
+                              <div
+                                className={`h-1 w-1 rounded-full ${getDotColorClass(schedule.project)}`}
+                              />
+                              <p className="display-webkit-box box-orient-vertical line-clamp-2 text-center text-detail">
+                                {formatTime(schedule.time)}
                               </p>
-                              <p className="display-webkit-box webkit-box-orient-vertical webkit-line-clamp-1 overflow-hidden text-ellipsis text-detail">
+                              <p className="display-webkit-box box-orient-vertical line-clamp-1 text-center text-detail">
                                 {schedule.description}
                               </p>
                             </div>

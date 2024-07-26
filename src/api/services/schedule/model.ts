@@ -3,6 +3,7 @@ export interface Schedule {
   time: string
   description: string
   project: string
+  isAllday?: boolean
 }
 
 export interface Schedules {
