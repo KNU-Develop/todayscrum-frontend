@@ -4,7 +4,7 @@ import { InputNotification, Notification, NotificationResponse } from './model'
 
 export const NotificationService = {
   async notificationListInfo(client: QueryClient) {
-    return APIBuilder.get('/notice/')
+    return APIBuilder.get('/notice')
       .withCredentials(client)
       .build()
       .call<NotificationResponse<Notification[]>>()

@@ -4,7 +4,7 @@ import { BoardDto, BoardResponse, InputBoard } from './model'
 
 export const BoardService = {
   async boardListInfo(client: QueryClient, uid: string) {
-    return APIBuilder.get(`/project/${uid}/board/`)
+    return APIBuilder.get(`/project/${uid}/board`)
       .withCredentials(client)
       .build()
       .call<BoardResponse<BoardDto[] | []>>()
@@ -18,7 +18,7 @@ export const BoardService = {
   },
 
   async addBoard(client: QueryClient, uid: string, dto: InputBoard) {
-    return APIBuilder.post(`/project/${uid}/board/`)
+    return APIBuilder.post(`/project/${uid}/board`)
       .withCredentials(client)
       .build()
       .call<BoardResponse<string>>({ body: JSON.stringify(dto) })
