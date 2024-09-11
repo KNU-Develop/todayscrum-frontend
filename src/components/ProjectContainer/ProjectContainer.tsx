@@ -680,8 +680,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
   )
 }
 
-
-
 const Board: React.FC<BoardProps> = ({
   items,
   SelectedItems,
@@ -990,12 +988,7 @@ const Board: React.FC<BoardProps> = ({
                 <td className="w-[100px] border-b px-4 py-2">
                   {item.category}
                 </td>
-                <td
-                  className="w-[200px] border-b px-4 py-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {item.title}
-                </td>
+                <td className="w-[200px] border-b px-4 py-2">{item.title}</td>
                 <td className="w-[150px] border-b px-4 py-2">
                   {item.masters.length === 0
                     ? null
