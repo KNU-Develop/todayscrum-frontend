@@ -685,6 +685,14 @@ const Board: React.FC<BoardProps> = ({
   SelectedItems,
   setSelectedItems,
 }) => {
+  const handleSelectAll = () => {
+    if (SelectedItems.length === items.length) {
+      setSelectedItems([])
+    } else {
+      setSelectedItems(items.map((item) => item.id))
+    }
+  }
+
   const [sortConfig, setSortConfig] = useState<{
     key: keyof BoardDto
     direction: string
@@ -913,7 +921,12 @@ const Board: React.FC<BoardProps> = ({
           <thead className="text-left">
             <tr>
               <th className="w-[50px] border-b px-5 py-2">
-                <Checkbox />
+                <Checkbox
+                  checked={
+                    SelectedItems.length === items.length && items.length > 0
+                  }
+                  onCheckedChange={handleSelectAll}
+                />
               </th>
               <th
                 className="w-[100px] cursor-pointer border-b px-4 py-2"
