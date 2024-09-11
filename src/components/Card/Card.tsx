@@ -1,4 +1,4 @@
-import { ProjectInfo } from '@/api'
+import { ProjectInfo, UserInfoResponse } from '@/api'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -8,7 +8,7 @@ import {
 import { useModal } from '@/hooks/useModal'
 import { ModalTypes } from '@/hooks/useModal/useModal'
 import { format } from 'date-fns'
-import { ko } from 'date-fns/locale'
+import { da, ko } from 'date-fns/locale'
 import {
   MoreVertical,
   PencilIcon,
@@ -17,6 +17,9 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 import { ProfileAvatar } from '../Avatar/Avatar'
+import { projectInfo } from '@/api/services/project/quries'
+import { useQuery } from '@tanstack/react-query'
+import { ProjectUserRole } from '@/api/services/project/model'
 
 const MAX_VISIBLE_MEMBERS = 5
 
@@ -32,6 +35,9 @@ const Card = ({
   const remainingMemberCount = data.users?.length - MAX_VISIBLE_MEMBERS
 
   const { openModal } = useModal()
+
+  const user = useQuery<UserInfoResponse>({ queryKey: ['user'] })
+  const role = data.users.find((item) => item.id === user.data?.result.id)?.role
 
   return (
     <Link href={`/project/${data.id}`}>
@@ -66,54 +72,56 @@ const Card = ({
             )}
           </div>
 
-          <DropdownMenu>
-            <DropdownMenuTrigger>
-              <MoreVertical
-                name="more-vertical"
-                className="cursor-pointer text-slate-500"
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent
-              className="w-[184px]"
-              onClick={(e) => {
-                e.preventDefault()
-              }}
-            >
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedProject(data)
-                  openModal('dimed', ModalTypes.INVITE)
+          {role === ProjectUserRole.Master && (
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <MoreVertical
+                  name="more-vertical"
+                  className="cursor-pointer text-slate-500"
+                />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                className="w-[184px]"
+                onClick={(e) => {
+                  e.preventDefault()
                 }}
               >
-                <div className="flex items-center gap-2 p-2">
-                  <UserPlusIcon size={16} />
-                  <p className="text-subtle font-medium">팀원 초대</p>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedProject(data)
-                  openModal('dimed', ModalTypes.EDIT)
-                }}
-              >
-                <div className="flex items-center gap-2 p-2">
-                  <PencilIcon size={16} />
-                  <p className="text-subtle font-medium">프로젝트 수정</p>
-                </div>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedProject(data)
-                  openModal('dimed', ModalTypes.DELETE)
-                }}
-              >
-                <div className="flex items-center gap-2 p-2">
-                  <Trash2Icon size={16} />
-                  <p className="text-subtle font-medium">프로젝트 삭제</p>
-                </div>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedProject(data)
+                    openModal('dimed', ModalTypes.INVITE)
+                  }}
+                >
+                  <div className="flex items-center gap-2 p-2">
+                    <UserPlusIcon size={16} />
+                    <p className="text-subtle font-medium">팀원 초대</p>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedProject(data)
+                    openModal('dimed', ModalTypes.EDIT)
+                  }}
+                >
+                  <div className="flex items-center gap-2 p-2">
+                    <PencilIcon size={16} />
+                    <p className="text-subtle font-medium">프로젝트 수정</p>
+                  </div>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelectedProject(data)
+                    openModal('dimed', ModalTypes.DELETE)
+                  }}
+                >
+                  <div className="flex items-center gap-2 p-2">
+                    <Trash2Icon size={16} />
+                    <p className="text-subtle font-medium">프로젝트 삭제</p>
+                  </div>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
         </div>
       </div>
     </Link>
