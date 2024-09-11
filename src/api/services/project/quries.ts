@@ -33,11 +33,11 @@ export const {
     queryFn: () => projectService.projectInfo(client),
   }),
   oneProjectInfo: (client: QueryClient, uid: string) => ({
-    queryKey: ['project'],
+    queryKey: ['project', uid],
     queryFn: () => projectService.oneProjectInfo(client, uid),
   }),
   teamInfo: (client: QueryClient, uid: string) => ({
-    queryKey: ['teamList'],
+    queryKey: ['teamList', uid],
     queryFn: () => projectService.teamInfo(client, uid),
   }),
   addProjectInfo: (client: QueryClient, dto: AddProjectDTO) => ({

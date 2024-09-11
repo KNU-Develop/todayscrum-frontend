@@ -11,11 +11,11 @@ import { BoardDto, BoardResponse, InputBoard } from './model'
 
 export const BoardOptions = {
   BoardListInfo: (client: QueryClient, uid: string) => ({
-    queryKey: ['boardList'],
+    queryKey: ['boardList', uid],
     queryFn: () => BoardService.boardListInfo(client, uid),
   }),
   BoardInfo: (client: QueryClient, uid: string) => ({
-    queryKey: ['board'],
+    queryKey: ['board', uid],
     queryFn: () => BoardService.boardInfo(client, uid),
   }),
   AddBoard: (client: QueryClient, uid: string) => ({
