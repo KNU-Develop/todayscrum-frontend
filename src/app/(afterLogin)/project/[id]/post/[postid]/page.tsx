@@ -32,6 +32,8 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
   const [editedContent, setEditedContent] = useState('')
   const queryClient = useQueryClient()
 
+  const user = useUserInfoQuery()
+
   const handleEditClick = () => {
     setIsEditing(true)
     setEditedContent(comment.description)
@@ -73,26 +75,28 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
             })}
           </div>
         </div>
-        <div className="flex gap-[12px]">
-          {isEditing ? (
-            <>
-              <button onClick={handleSaveClick} className="text-blue-500">
-                저장
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="text-gray-500"
-              >
-                닫기
-              </button>
-            </>
-          ) : (
-            <>
-              <SvgIcon name="edit" onClick={handleEditClick} />
-              <SvgIcon name="delete" onClick={() => onDelete(comment)} />
-            </>
-          )}
-        </div>
+        {user.data?.result.name === comment.user && (
+          <div className="flex gap-[12px]">
+            {isEditing ? (
+              <>
+                <button onClick={handleSaveClick} className="text-blue-500">
+                  저장
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="text-gray-500"
+                >
+                  닫기
+                </button>
+              </>
+            ) : (
+              <>
+                <SvgIcon name="edit" onClick={handleEditClick} />
+                <SvgIcon name="delete" onClick={() => onDelete(comment)} />
+              </>
+            )}
+          </div>
+        )}
       </div>
       <div>
         <hr className="border-t border-gray-300" />
