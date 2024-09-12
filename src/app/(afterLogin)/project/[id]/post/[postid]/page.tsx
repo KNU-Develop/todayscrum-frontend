@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserInfoQuery } from '@/api'
 import { BoardDto, BoardResponse } from '@/api/services/board/model'
 import { useBoardQuery } from '@/api/services/board/quries'
 import { Comment, CommentResponse } from '@/api/services/comment/model'
@@ -115,7 +116,7 @@ const PostContainer: React.FC<{
   const [comment, setComment] = useState<string>('')
   const queryClient = useQueryClient()
 
-  console.log(board)
+  const user = useUserInfoQuery()
 
   const addComment = useAddCommentMutation(board?.id, {
     onSuccess: () => {
@@ -169,10 +170,12 @@ const PostContainer: React.FC<{
                   {board?.category}
                 </div>
               </div>
-              <div className="flex gap-[12px]">
-                <SvgIcon name="edit" />
-                <SvgIcon name="delete" />
-              </div>
+              {user.data?.result.name === board.userName && (
+                <div className="flex gap-[12px]">
+                  <SvgIcon name="edit" />
+                  <SvgIcon name="delete" />
+                </div>
+              )}
             </div>
             <div className="flex gap-[8px]">
               <div className="author">{board?.userName}</div>
