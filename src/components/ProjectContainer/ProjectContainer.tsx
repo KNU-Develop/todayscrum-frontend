@@ -724,9 +724,7 @@ const Board: React.FC<BoardProps> = ({
     return items
   }, [items, sortConfig])
 
-  const requestSort = (key: string) => {
-    let typeKey = key as keyof BoardDto
-
+  const requestSort = (key: keyof BoardDto) => {
     let direction = 'ascending'
     if (
       sortConfig &&
@@ -735,7 +733,7 @@ const Board: React.FC<BoardProps> = ({
     ) {
       direction = 'descending'
     }
-    setSortConfig({ key: typeKey, direction })
+    setSortConfig({ key, direction })
   }
 
   const renderSortIcon = (key: string) => {
@@ -861,11 +859,11 @@ const Board: React.FC<BoardProps> = ({
                 </th>
                 <th
                   className="w-[100px] cursor-pointer border-b px-4 py-2"
-                  onClick={() => requestSort('type')}
+                  onClick={() => requestSort('category')}
                 >
                   <div className="flex items-center justify-start">
                     종류
-                    {renderSortIcon('type')}
+                    {renderSortIcon('category')}
                   </div>
                 </th>
                 <th
@@ -879,29 +877,29 @@ const Board: React.FC<BoardProps> = ({
                 </th>
                 <th
                   className="w-[150px] cursor-pointer border-b px-4 py-2"
-                  onClick={() => requestSort('assignee')}
+                  onClick={() => requestSort('masters')}
                 >
                   <div className="flex items-center justify-start">
                     담당자
-                    {renderSortIcon('assignee')}
+                    {renderSortIcon('masters')}
                   </div>
                 </th>
                 <th
                   className="w-[150px] cursor-pointer border-b px-4 py-2"
-                  onClick={() => requestSort('createdDate')}
+                  onClick={() => requestSort('createdAt')}
                 >
                   <div className="flex items-center">
                     생성일자
-                    {renderSortIcon('createdDate')}
+                    {renderSortIcon('createdAt')}
                   </div>
                 </th>
                 <th
                   className="w-[100px] cursor-pointer border-b px-4 py-2"
-                  onClick={() => requestSort('status')}
+                  onClick={() => requestSort('progress')}
                 >
                   <div className="flex items-center">
                     진행 상태
-                    {renderSortIcon('status')}
+                    {renderSortIcon('progress')}
                   </div>
                 </th>
               </tr>
@@ -930,11 +928,11 @@ const Board: React.FC<BoardProps> = ({
               </th>
               <th
                 className="w-[100px] cursor-pointer border-b px-4 py-2"
-                onClick={() => requestSort('type')}
+                onClick={() => requestSort('category')}
               >
                 <div className="flex items-center justify-start">
                   종류
-                  {renderSortIcon('type')}
+                  {renderSortIcon('category')}
                 </div>
               </th>
               <th
@@ -948,29 +946,29 @@ const Board: React.FC<BoardProps> = ({
               </th>
               <th
                 className="w-[150px] cursor-pointer border-b px-4 py-2"
-                onClick={() => requestSort('assignee')}
+                onClick={() => requestSort('masters')}
               >
                 <div className="flex items-center justify-start">
                   담당자
-                  {renderSortIcon('assignee')}
+                  {renderSortIcon('masters')}
                 </div>
               </th>
               <th
                 className="w-[150px] cursor-pointer border-b px-4 py-2"
-                onClick={() => requestSort('createdDate')}
+                onClick={() => requestSort('createdAt')}
               >
                 <div className="flex items-center">
                   생성일자
-                  {renderSortIcon('createdDate')}
+                  {renderSortIcon('createdAt')}
                 </div>
               </th>
               <th
                 className="w-[100px] cursor-pointer border-b px-4 py-2"
-                onClick={() => requestSort('status')}
+                onClick={() => requestSort('progress')}
               >
                 <div className="flex items-center">
                   진행 상태
-                  {renderSortIcon('status')}
+                  {renderSortIcon('progress')}
                 </div>
               </th>
             </tr>
