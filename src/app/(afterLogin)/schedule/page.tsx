@@ -1,7 +1,7 @@
 'use client'
 import { useProjectInfoQuery } from '@/api'
 import { CalendarHeader } from '@/components/Header/CalendarHeader'
-import { MiniCalendar } from '@/components/ui/calendar'
+import { MiniCalendar } from '@/components/Calendar/Calendar'
 import { TextGradientGenerator } from '@/components/ui/color-picker'
 import { CalendarContext } from '@/hooks/useCalendar/calendarContext'
 import * as React from 'react'
@@ -10,8 +10,6 @@ const Page = () => {
   const state = React.useContext(CalendarContext)
 
   const { data } = useProjectInfoQuery()
-
-  const [date, setDate] = React.useState<Date | undefined>(new Date())
 
   React.useEffect(() => {
     if (data) {
@@ -26,10 +24,6 @@ const Page = () => {
       handleFilterChange(initialSelectedProjects, true)
     }
   }, [data])
-
-  const handleMonthChange = (newDate: Date) => {
-    setDate(newDate) // 새로운 날짜를 children에 반영
-  }
 
   const handleColorChange = (uid: string, newColor: string) => {
     // const editProjectInfo = useEditProjectInfo(
@@ -64,7 +58,7 @@ const Page = () => {
   return (
     <div className="m-auto flex w-[1180px]">
       <div className="flex flex-col gap-6">
-        //미니 캘린더
+        <MiniCalendar />
         <div className="flex flex-col gap-3 p-[10px]">
           <p className="text-body">내 캘린더</p>
           {data?.result?.map((project) => (

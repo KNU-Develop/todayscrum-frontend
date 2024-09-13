@@ -22,7 +22,7 @@ import {
 } from '../ui/select'
 
 import { CalendarContext } from '@/hooks/useCalendar/calendarContext'
-import { format } from 'date-fns'
+import { endOfMonth, format, startOfMonth } from 'date-fns'
 import { Monthly, Weekly, Daily, List } from '../Calendar'
 import {
   RepeatScheduleDeleteModal,
@@ -30,30 +30,39 @@ import {
   ScheduleRepeatModal,
 } from '../Modal/ScheduleModal'
 
-type SelectedProjects = { [key: string]: boolean }
-type Checked = boolean
-
 export const CalendarHeader = () => {
   const { modals, openModal } = useModal()
   const state = useContext(CalendarContext)
 
-  const startDate = format(state.date, 'yyyy-MM-dd')
-  const endDate = format(state.date, 'yyyy-MM-dd')
+  const startDate = format(startOfMonth(state.date), 'yyyy-MM-dd')
+  const endDate = format(endOfMonth(state.date), 'yyyy-MM-dd')
 
   const { data: schedules } = useScheduleListQuery(startDate, endDate)
   const { data: projects } = useProjectInfoQuery()
+
+  const [selectedView, setSelectedView] = useState('month')
 
   // 선택된 프로젝트에 따라 스케줄 필터링
   const schedule =
     schedules?.result?.filter((schedule) => {
       const isProjectSelected = state.selectedProject[schedule.projectId || '']
-      return isProjectSelected || !schedule.projectId || state.myCalendar
+      const isMySchedule = state.myCalendar && !schedule.projectId
+      return isProjectSelected || isMySchedule
     }) || []
-
-  const [selectedView, setSelectedView] = useState('month')
 
   const handleSelectChange = (value: string) => {
     setSelectedView(value)
+  }
+
+  const handleCheckedChange = (projectId: string) => {
+    state.setSelectedProject((prevSelected: { [key: string]: boolean }) => ({
+      ...prevSelected,
+      [projectId]: !prevSelected[projectId],
+    }))
+  }
+
+  const handleMyCalendarChange = () => {
+    state.setMyCalendar((prev: boolean) => !prev)
   }
 
   return (
@@ -102,16 +111,16 @@ export const CalendarHeader = () => {
                 <DropdownMenuCheckboxItem
                   key={project.id}
                   checked={!!state.selectedProject[project.id]}
-                  // onCheckedChange={() => handleCheckedChange(project.id)}
+                  onCheckedChange={() => handleCheckedChange(project.id)}
                 >
                   {project.title}
                 </DropdownMenuCheckboxItem>
               ))}
               <DropdownMenuCheckboxItem
                 checked={state.myCalendar}
-                // onCheckedChange={handleMyCalendarChange}
+                onCheckedChange={handleMyCalendarChange}
               >
-                내 캘린더
+                나의 일정
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
