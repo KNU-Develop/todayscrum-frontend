@@ -60,6 +60,11 @@ export interface TeamInfo {
   email: string
   choice: ProjectInviteStatus
   role: ProjectUserRole
+  location: string
+  mbit: string
+  imageUrl: string
+  color: string
+  attend: string
 }
 
 export interface InviteTeamDto {

@@ -418,6 +418,7 @@ const NotificationDropdown: React.FC = () => {
       <button
         className="flex items-center p-2 text-lg font-medium text-gray-700 hover:text-gray-900"
         onClick={toggleDropdown}
+        ref={buttonRef}
       >
         <svg
           xmlns="http://www.w3.org/2000/svg"
