@@ -4,7 +4,7 @@ import {
   useNotificationListQuery,
   useNotificationPost,
 } from '@/api/services/notification/quries'
-import { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { ProjectInviteStatus } from '@/api'
 import {
@@ -376,7 +376,10 @@ const NotificationDropdown: React.FC = () => {
     useState(false)
   const [notification, setNotification] = useState<Notification>()
 
-  const toggleDropdown = () => {
+  const dropdownRef = useRef<HTMLDivElement>(null)
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setIsOpen(!isOpen)
   }
 
@@ -394,6 +397,21 @@ const NotificationDropdown: React.FC = () => {
       setMeetingReminderShowModal(true)
     }
   }
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current?.contains(event.target as Node)
+      ) {
+        setIsOpen(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
   return (
     <div className="relative inline-block text-left">
@@ -427,6 +445,7 @@ const NotificationDropdown: React.FC = () => {
 
       {isOpen && (
         <div
+          ref={dropdownRef}
           className="absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-lg border border-gray-200 bg-white p-[10px] shadow-lg focus:outline-none"
           role="menu"
         >

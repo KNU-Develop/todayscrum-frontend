@@ -126,6 +126,16 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
 
+  useEffect(() => {
+    if (!isOpen) {
+      setTitle('')
+      setMaster('')
+      setProgress(BoardProgress.problem)
+      setCategory(BoardCategory.issue)
+      setContent('')
+    }
+  }, [isOpen])
+
   if (!isOpen) return null
 
   const handleCreate = () => {
@@ -415,7 +425,11 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const queryClient = useQueryClient()
 
   const handleDeleteClick = () => {
-    setDeleteModalOpen(true)
+    if (selectedItems.length > 0) {
+      setDeleteModalOpen(true)
+    } else {
+      toast('삭제할 게시물이 선택되지 않았습니다.', { duration: 3000 })
+    }
   }
 
   const handleCloseModal = () => {
@@ -482,7 +496,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
   }, [selectedStatuses, selectedAssignees, search, onFilterChange])
 
   return (
-    <div className="relative flex items-center space-x-2 p-2">
+    <div className="relative flex items-center gap-2 p-2">
       <DeleteModal
         isOpen={isDeleteModalOpen}
         onClose={handleCloseModal}
@@ -496,41 +510,42 @@ const FilterBar: React.FC<FilterBarProps> = ({
         viewBox="0 0 24 24"
         onClick={handleDeleteClick}
         fill="none"
+        className={`cursor-pointer ${selectedItems.length === 0 ? 'cursor-not-allowed' : ''}`}
       >
         <path
           d="M3 6H21"
           stroke="black"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6"
           stroke="black"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6"
           stroke="black"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M10 11V17"
           stroke="black"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
         <path
           d="M14 11V17"
           stroke="black"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
         />
       </svg>
       {showSearchInput ? (
@@ -670,6 +685,14 @@ const Board: React.FC<BoardProps> = ({
   SelectedItems,
   setSelectedItems,
 }) => {
+  const handleSelectAll = () => {
+    if (SelectedItems.length === items.length) {
+      setSelectedItems([])
+    } else {
+      setSelectedItems(items.map((item) => item.id))
+    }
+  }
+
   const [sortConfig, setSortConfig] = useState<{
     key: keyof BoardDto
     direction: string
@@ -898,7 +921,12 @@ const Board: React.FC<BoardProps> = ({
           <thead className="text-left">
             <tr>
               <th className="w-[50px] border-b px-5 py-2">
-                <Checkbox />
+                <Checkbox
+                  checked={
+                    SelectedItems.length === items.length && items.length > 0
+                  }
+                  onCheckedChange={handleSelectAll}
+                />
               </th>
               <th
                 className="w-[100px] cursor-pointer border-b px-4 py-2"
@@ -973,12 +1001,7 @@ const Board: React.FC<BoardProps> = ({
                 <td className="w-[100px] border-b px-4 py-2">
                   {item.category}
                 </td>
-                <td
-                  className="w-[200px] border-b px-4 py-2"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {item.title}
-                </td>
+                <td className="w-[200px] border-b px-4 py-2">{item.title}</td>
                 <td className="w-[150px] border-b px-4 py-2">
                   {item.masters.length === 0
                     ? null
