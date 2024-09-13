@@ -4,7 +4,7 @@ import {
   useNotificationListQuery,
   useNotificationPost,
 } from '@/api/services/notification/quries'
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 import { ProjectInviteStatus } from '@/api'
 import {
@@ -377,8 +377,9 @@ const NotificationDropdown: React.FC = () => {
   const [notification, setNotification] = useState<Notification>()
 
   const dropdownRef = useRef<HTMLDivElement>(null)
-
-  const toggleDropdown = () => {
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const toggleDropdown = (e: React.MouseEvent) => {
+    e.stopPropagation()
     setIsOpen(!isOpen)
   }
 
@@ -401,7 +402,8 @@ const NotificationDropdown: React.FC = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
         dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node)
+        !dropdownRef.current.contains(event.target as Node) &&
+        !buttonRef.current?.contains(event.target as Node)
       ) {
         setIsOpen(false)
       }
