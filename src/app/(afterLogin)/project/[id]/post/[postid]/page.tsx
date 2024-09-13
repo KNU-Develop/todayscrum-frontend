@@ -61,7 +61,7 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
           <div className="flex items-center gap-[8px]">
             <ProfileAvatar
               size="32"
-              imageUrl={comment.user}
+              imageUrl={comment.user.imageURL}
               name={comment.user}
             />
             <div className="author">{comment.user}</div>
