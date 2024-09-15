@@ -2,17 +2,10 @@
 
 import * as React from 'react'
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { CaptionProps, DayPicker } from 'react-day-picker'
+import { DayPicker } from 'react-day-picker'
 
 import { cn } from '@/lib/utils'
-import { Button, buttonVariants } from '@/components/ui/button'
-import {
-  endOfWeek,
-  format,
-  isSameWeek,
-  isWithinInterval,
-  startOfWeek,
-} from 'date-fns'
+import { buttonVariants } from '@/components/ui/button'
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
