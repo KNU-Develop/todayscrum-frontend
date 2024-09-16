@@ -22,6 +22,7 @@ export interface ProjectUserInfo {
   location: string
   tools: tooldto[] | []
   mbti: string
+  role: ProjectUserRole
 }
 interface tooldto {
   toolName: string

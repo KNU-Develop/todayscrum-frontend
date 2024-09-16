@@ -1,6 +1,6 @@
 'use client'
 
-import { ProjectInfo, useProjectInfoQuery } from '@/api'
+import { ProjectInfo, useProjectInfoQuery, useUserInfoQuery } from '@/api'
 import Card from '@/components/Card/Card'
 import {
   ProjectCreateModal,
@@ -22,6 +22,7 @@ const Home = () => {
   const [selectedProject, setSelectedProject] = useState<ProjectInfo | null>(
     null,
   )
+  const user = useUserInfoQuery()
 
   const handleClick = () => {
     openModal('dimed', ModalTypes.CREATE)

@@ -1,5 +1,6 @@
 'use client'
 
+import { useUserInfoQuery } from '@/api'
 import { BoardDto, BoardResponse } from '@/api/services/board/model'
 import { useBoardQuery } from '@/api/services/board/quries'
 import { Comment, CommentResponse } from '@/api/services/comment/model'
@@ -30,6 +31,8 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState('')
   const queryClient = useQueryClient()
+
+  const user = useUserInfoQuery()
 
   const handleEditClick = () => {
     setIsEditing(true)
@@ -72,26 +75,28 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
             })}
           </div>
         </div>
-        <div className="flex gap-[12px]">
-          {isEditing ? (
-            <>
-              <button onClick={handleSaveClick} className="text-blue-500">
-                저장
-              </button>
-              <button
-                onClick={() => setIsEditing(false)}
-                className="text-gray-500"
-              >
-                닫기
-              </button>
-            </>
-          ) : (
-            <>
-              <SvgIcon name="edit" onClick={handleEditClick} />
-              <SvgIcon name="delete" onClick={() => onDelete(comment)} />
-            </>
-          )}
-        </div>
+        {user.data?.result.name === comment.user && (
+          <div className="flex gap-[12px]">
+            {isEditing ? (
+              <>
+                <button onClick={handleSaveClick} className="text-blue-500">
+                  저장
+                </button>
+                <button
+                  onClick={() => setIsEditing(false)}
+                  className="text-gray-500"
+                >
+                  닫기
+                </button>
+              </>
+            ) : (
+              <>
+                <SvgIcon name="edit" onClick={handleEditClick} />
+                <SvgIcon name="delete" onClick={() => onDelete(comment)} />
+              </>
+            )}
+          </div>
+        )}
       </div>
       <div>
         <hr className="border-t border-gray-300" />
@@ -115,7 +120,7 @@ const PostContainer: React.FC<{
   const [comment, setComment] = useState<string>('')
   const queryClient = useQueryClient()
 
-  console.log(board)
+  const user = useUserInfoQuery()
 
   const addComment = useAddCommentMutation(board?.id, {
     onSuccess: () => {
@@ -169,10 +174,12 @@ const PostContainer: React.FC<{
                   {board?.category}
                 </div>
               </div>
-              <div className="flex gap-[12px]">
-                <SvgIcon name="edit" />
-                <SvgIcon name="delete" />
-              </div>
+              {user.data?.result.name === board.userName && (
+                <div className="flex gap-[12px]">
+                  <SvgIcon name="edit" />
+                  <SvgIcon name="delete" />
+                </div>
+              )}
             </div>
             <div className="flex gap-[8px]">
               <div className="author">{board?.userName}</div>
