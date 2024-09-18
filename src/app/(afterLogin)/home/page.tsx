@@ -15,7 +15,9 @@ import { PlusIcon } from 'lucide-react'
 import { useState } from 'react'
 
 const Home = () => {
-  const { data, isLoading } = useProjectInfoQuery()
+  const { data, isLoading } = useProjectInfoQuery({
+    refetchOnMount: true,
+  })
 
   const { openModal, modals } = useModal()
 
