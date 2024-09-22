@@ -24,38 +24,46 @@ export function List({ schedules, projects }: ListProps) {
     })
   }
 
-  const formatTime = (start: string, end?: string): string => {
+  const formatTime = (start: string, end: string): string => {
     const formatSingleTime = (
       time: string,
-    ): { period: string; hour12: number } => {
-      const [datePart, timePart] = time.split(' ')
-      if (!timePart) return { period: '', hour12: 0 }
-
-      const [hourString] = timePart.split(':')
-      const hour = parseInt(hourString)
-
-      if (isNaN(hour)) return { period: '', hour12: 0 }
-
+    ): { period: string; hour12: number; minutes: string } => {
+      const date = new Date(time)
+      const hour = date.getHours()
+      const minutes = date.getMinutes().toString().padStart(2, '0')
       const period = hour < 12 ? '오전' : '오후'
       const hour12 = hour % 12 || 12
-      return { period, hour12 }
+
+      return { period, hour12, minutes }
     }
 
-    const { period: startPeriod, hour12: startHour12 } = formatSingleTime(start)
-    const { period: endPeriod, hour12: endHour12 } = end
-      ? formatSingleTime(end)
-      : { period: '', hour12: 0 }
+    const formatHourAndMinutes = (hour12: number, minutes: string) => {
+      return minutes === '00' ? `${hour12}시` : `${hour12}시 ${minutes}분`
+    }
 
-    if (!end || start === end) {
+    const {
+      period: startPeriod,
+      hour12: startHour12,
+      minutes: startMinutes,
+    } = formatSingleTime(start)
+    const {
+      period: endPeriod,
+      hour12: endHour12,
+      minutes: endMinutes,
+    } = end ? formatSingleTime(end) : { period: '', hour12: 0, minutes: '' }
+
+    if (start === end) {
       return '하루 종일'
     }
 
-    const endTime =
-      endPeriod === startPeriod
-        ? `${endHour12}시`
-        : `${endPeriod} ${endHour12}시`
+    const endTime = formatHourAndMinutes(endHour12, endMinutes)
 
-    return `${startPeriod} ${startHour12}시 ~ ${endTime}`
+    // 시작 시간과 끝 시간이 같은 '오전' 또는 '오후'일 경우 한 번만 출력
+    if (startPeriod === endPeriod) {
+      return `${startPeriod} ${formatHourAndMinutes(startHour12, startMinutes)} ~ ${endTime}`
+    }
+
+    return `${startPeriod} ${formatHourAndMinutes(startHour12, startMinutes)} ~ ${endPeriod} ${endTime}`
   }
 
   const getProjectColor = (projectId: string) => {

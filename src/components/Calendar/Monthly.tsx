@@ -34,7 +34,8 @@ export const Monthly: React.FC<MonthlyProps> = ({
 
   const getProjectColor = (projectId: string) => {
     return (
-      projects?.find((project) => project.id === projectId)?.color || '#ccc'
+      projects?.find((project) => project.id === projectId)?.color ||
+      'bg-slate-100'
     )
   }
 
@@ -61,20 +62,23 @@ export const Monthly: React.FC<MonthlyProps> = ({
     })
   }
 
-  const formatTime = (datetime: string): string => {
-    if (!datetime) return ''
+  const formatTime = (startDate: string, endDate: string) => {
+    if (!startDate) return ''
 
-    const [datePart, timePart] = datetime.split(' ')
-    if (!timePart) return '하루 종일'
+    const startTime = startDate.split('T')[1]
+    const endTime = endDate.split('T')[1]
 
-    const [hourString, minute] = timePart.split(':')
-    const hour = parseInt(hourString)
+    if (!endTime || startDate === endDate) return '하루 종일'
 
-    if (isNaN(hour)) return ''
+    const [startHourString, startMinute] = startTime.split(':')
+    const startHour = parseInt(startHourString)
 
-    const period = hour < 12 ? '오전' : '오후'
-    const hour12 = hour % 12 || 12
-    return `${period} ${hour12}:${minute}`
+    if (isNaN(startHour)) return ''
+
+    const period = startHour < 12 ? '오전' : '오후'
+    const startHour12 = startHour % 12 || 12
+
+    return `${period} ${startHour12}:${startMinute}`
   }
 
   return (
@@ -104,7 +108,7 @@ export const Monthly: React.FC<MonthlyProps> = ({
                   className={`${dayClass} ${isThisMonth ? '' : 'text-gray-300'}`}
                   key={dayIndex}
                 >
-                  <div className="flex h-auto flex-col">
+                  <div className="flex h-auto w-full flex-col">
                     {day !== null && (
                       <>
                         <div>
@@ -114,20 +118,23 @@ export const Monthly: React.FC<MonthlyProps> = ({
                             {day}
                           </p>
                         </div>
-                        <div className="flex flex-col gap-[2px]">
+                        <div className="flex flex-col gap-[3px]">
                           {schedules.map((schedule, index) => (
                             <div
                               key={index}
                               onClick={() => {
                                 handleScheduleSelect(schedule)
                               }}
-                              className={`flex h-[25px] cursor-pointer items-center gap-1 overflow-hidden rounded-[5px] pl-1 ${getProjectColor(schedule.projectId ?? '')}`}
+                              className={`flex h-[25px] w-full cursor-pointer items-center gap-[6px] rounded-[5px] pl-1 ${getProjectColor(schedule.projectId ?? '')}`}
                             >
                               <div
-                                className={`h-1 w-1 shrink-0 rounded-full ${getDotColor(getProjectColor(schedule.projectId ?? 'bg-red-300'))}`}
+                                className={`h-1 w-1 flex-shrink-0 rounded-full ${getDotColor(getProjectColor(schedule.projectId ?? 'bg-red-300'))}`}
                               />
-                              <p className="display-webkit-box box-orient-vertical line-clamp-2 w-[75px] text-detail">
-                                {formatTime(schedule.startDate)}
+                              <p className="display-webkit-box box-orient-vertical line-clamp-2 text-detail">
+                                {formatTime(
+                                  schedule.startDate,
+                                  schedule.endDate,
+                                )}
                               </p>
                               <p className="display-webkit-box box-orient-vertical line-clamp-1 text-detail">
                                 {schedule.title}
