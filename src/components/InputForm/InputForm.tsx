@@ -899,13 +899,20 @@ export function DateTimePickerForm({
   }
 
   const formatDate = (
-    date: Date,
+    date: Date | undefined,
     start: Date | undefined,
     end: Date | undefined,
     allDay: boolean,
   ) => {
+    if (!date) return undefined
+
     const dayOfWeek = ['일', '월', '화', '수', '목', '금', '토'][date.getDay()]
-    const datePart = `${date.getFullYear()}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getDate().toString().padStart(2, '0')} (${dayOfWeek})`
+    const datePart = `${date.getFullYear()}.${(date.getMonth() + 1)
+      .toString()
+      .padStart(2, '0')}.${date
+      .getDate()
+      .toString()
+      .padStart(2, '0')} (${dayOfWeek})`
 
     if (allDay) {
       return datePart
@@ -925,8 +932,8 @@ export function DateTimePickerForm({
     return formattedStartTime && formattedEndTime
       ? `${datePart} ${formattedStartTime} ~ ${formattedEndTime}`
       : formattedStartTime || formattedEndTime
-        ? `${datePart} ${formattedStartTime || formattedEndTime}`
-        : datePart
+      ? `${datePart} ${formattedStartTime || formattedEndTime}`
+      : datePart
   }
 
   return (
@@ -940,6 +947,8 @@ export function DateTimePickerForm({
             const defaultEnd = getDefaultEndDate(defaultStart)
             setStartDate(defaultStart)
             setEndDate(defaultEnd)
+            // Initialize form values for period.from and period.to
+            form.setValue(name, { from: defaultStart, to: defaultEnd })
           }
         }, [field.value])
 
@@ -954,34 +963,37 @@ export function DateTimePickerForm({
                     className="text-left"
                     {...rest}
                     {...field}
-                    value={
-                      field.value
-                        ? formatDate(
-                            new Date(field.value),
-                            startDate,
-                            endDate,
-                            allDay,
-                          )
-                        : formatDate(
-                            getDefaultStartDate(),
-                            startDate,
-                            endDate,
-                            allDay,
-                          )
-                    }
-                    readOnly
+                    value={String(
+                      field.value?.from
+                        ? field.value.to
+                          ? formatDate(
+                              new Date(field.value.from),
+                              startDate,
+                              endDate,
+                              allDay,
+                            )
+                          : formatDate(
+                              getDefaultStartDate(),
+                              startDate,
+                              endDate,
+                              allDay,
+                            )
+                        : '',
+                    )}
                   />
                 </PopoverTrigger>
                 <PopoverContent className="w-auto p-0">
                   <Calendar
                     mode="single"
-                    selected={field.value}
+                    selected={startDate}
                     onSelect={(selectedDate) => {
                       setDate(selectedDate)
                       const start = selectedDate || getDefaultStartDate()
+                      const end = getDefaultEndDate(start)
                       setStartDate(start)
-                      setEndDate(getDefaultEndDate(start))
-                      field.onChange(start)
+                      setEndDate(end)
+                      // Update form period values for both from and to
+                      form.setValue(name, { from: start, to: end })
                       setSelectedDate(start)
                     }}
                     disabled={(date) => date > maxDate}
@@ -991,9 +1003,25 @@ export function DateTimePickerForm({
                   <div className="border-t border-border p-3">
                     <TimePickerDemo
                       startDate={startDate}
-                      setStartDate={setStartDate}
+                      setStartDate={(newStartDate) => {
+                        setStartDate(newStartDate)
+                        if (newStartDate && endDate) {
+                          form.setValue(name, {
+                            from: newStartDate,
+                            to: endDate,
+                          })
+                        }
+                      }}
                       endDate={endDate}
-                      setEndDate={setEndDate}
+                      setEndDate={(newEndDate) => {
+                        if (newEndDate && startDate) {
+                          setEndDate(newEndDate)
+                          form.setValue(name, {
+                            from: startDate,
+                            to: newEndDate,
+                          })
+                        }
+                      }}
                       allDay={allDay}
                     />
                   </div>
@@ -1006,3 +1034,4 @@ export function DateTimePickerForm({
     />
   )
 }
+

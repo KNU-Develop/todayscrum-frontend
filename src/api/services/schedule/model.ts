@@ -15,8 +15,8 @@ export interface ScheduleInfo {
   startDate: string
   endDate: string
   visible: ScheduleVisibility
-  projectId?: string
-  inviteList?: string[]
+  projectId: string 
+  inviteList: string[]
 }
 
 // export interface RepeatInfo {
@@ -31,13 +31,13 @@ export interface ScheduleDetailResponse {
   msg: string
   result: {
     title: string
-    content?: string
-    visible?: ScheduleVisibility
+    content: string
+    visible: ScheduleVisibility
     startDate: string
-    endDate?: string
+    endDate: string
     // repeat?: RepeatInfo,
-    projectId?: string
-    inviteList?: string[]
+    projectId: string
+    inviteList: string[]
   }
 }
 export interface ScheduleListResponse {
@@ -47,24 +47,24 @@ export interface ScheduleListResponse {
 
 export interface AddScheduleDTO {
   title: string
-  content?: string
-  visible?: ScheduleVisibility
+  content: string
+  visible: ScheduleVisibility
   startDate: string
-  endDate?: string
+  endDate: string
   // repeat?: RepeatInfo,
-  projectId?: string
-  inviteList?: string[]
+  projectId: string | null
+  inviteList: string[]
 }
 
 export interface EditScheduleDTO {
-  title?: string
-  content?: string
-  visible?: ScheduleVisibility
-  startDate?: string
-  endDate?: string
+  title: string
+  content: string
+  visible: ScheduleVisibility
+  startDate: string
+  endDate: string
   // repeat?: RepeatInfo;
-  projectId?: string
-  inviteList?: string[]
+  projectId: string | null
+  inviteList: string[]
 }
 
 export interface DeleteScheduleResponse {

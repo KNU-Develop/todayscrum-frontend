@@ -63,17 +63,17 @@ const getRepeatOptions = (date: Date) => {
     '금요일',
     '토요일',
   ]
-  const dayOfWeek = dayOfWeekNames[date.getDay()]
+  // const dayOfWeek = dayOfWeekNames[date.getDay()]
 
-  const monthDay = date.getDate()
-  const month = date.getMonth() + 1
+  // const monthDay = date.getDate()
+  // const month = date.getMonth() + 1
 
   return [
     '반복 안함',
     '매일',
-    `매주 ${dayOfWeek}`,
-    `매월 ${monthDay}일`,
-    `매년 ${month}월 ${monthDay}일`,
+    // `매주 ${dayOfWeek}`,
+    // `매월 ${monthDay}일`,
+    // `매년 ${month}월 ${monthDay}일`,
     '맞춤 설정',
   ]
 }
@@ -102,10 +102,9 @@ export const ScheduleCreateModal = () => {
       type: '개인 일정',
       title: '',
       content: '',
-      startDate: new Date(),
-      endDate: undefined,
+      period: { from: new Date(), to: new Date() },
       visible: 'PRIVATE',
-      projectId: '',
+      projectId: null,
       inviteList: [],
     },
   })
@@ -114,35 +113,27 @@ export const ScheduleCreateModal = () => {
     {
       title: form.watch('title'),
       content: form.watch('content'),
-      startDate: form.watch('startDate').toISOString(),
-      endDate:
-        (form.watch('endDate') as Date | undefined)?.toISOString() ?? undefined,
-      visible: form.watch('visible') as ScheduleVisibility | undefined,
-      projectId: form.watch('projectId'),
-      inviteList: form.watch('inviteList'),
+      startDate: form.watch('period')?.from?.toISOString(),
+      endDate: form.watch('period')?.to?.toISOString(),
+      visible: form.watch('visible') as ScheduleVisibility,
+      projectId: form.watch('projectId') || null,
+      inviteList: form.watch('inviteList') || [],
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ['schedules'],
         })
-        console.log('Success', {
-          title: form.watch('title'),
-          content: form.watch('content'),
-          startDate: form.watch('startDate').toISOString(),
-          endDate:
-            (form.watch('endDate') as Date | undefined)?.toISOString() ??
-            undefined,
-          visible: form.watch('visible') as ScheduleVisibility | undefined,
-          // projectId: form.watch('projectId'),
-          // inviteList: form.watch('inviteList'),
-        })
-      },
-      onError: (e) => {
-        console.log(e)
+        closeModal('default')
       },
     },
   )
+
+  React.useEffect(() => {
+    if (form.watch('type') === '개인 일정') {
+      form.setValue('projectId', null)
+    }
+  }, [form.watch('type')])
 
   const handleDateChange = (date: Date) => {
     setSelectedDate(date)
@@ -150,9 +141,20 @@ export const ScheduleCreateModal = () => {
     setSelectedEndDate(undefined)
   }
 
-  const onSubmit = () => {
+  const handleAllDayChange = (checked: boolean) => {
+    setAllDay(checked)
+    if (checked) {
+      // allDay가 체크된 경우 endDate를 startDate와 동일하게 설정
+      form.setValue('period', {
+        from: form.watch('period').from,
+        to: form.watch('period').from, // startDate와 동일하게 설정
+      })
+      setSelectedEndDate(form.watch('period').from)
+    }
+  }
+
+  function onSubmit() {
     addScheduleInfo.mutate()
-    closeModal('default')
   }
 
   return (
@@ -181,7 +183,7 @@ export const ScheduleCreateModal = () => {
             <div className="flex flex-col gap-[6px]">
               <DateTimePickerForm
                 form={form}
-                name="datetime"
+                name="period"
                 label="일정 시간"
                 allDay={allDay}
                 setAllDay={setAllDay}
@@ -193,7 +195,9 @@ export const ScheduleCreateModal = () => {
                   <Checkbox
                     id="allday"
                     checked={allDay}
-                    onCheckedChange={() => setAllDay(!allDay)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleAllDayChange(checked)
+                    }
                   />
                   <label htmlFor="allday" className="text-small">
                     하루 종일
@@ -261,6 +265,7 @@ export const ScheduleCreateModal = () => {
 
           <div className="flex w-full items-start justify-end gap-[12px] self-stretch">
             <Button
+              type="button"
               title="취소"
               variant="secondary"
               onClick={() => closeModal('default')}
@@ -312,42 +317,36 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
     resolver: zodResolver(fromSchemaSchedule),
     defaultValues: {
       type: schedules?.result.projectId ? '팀 일정' : '개인 일정',
-      title: '',
-      content: '',
-      startDate: new Date(),
-      endDate: new Date(),
-      visible: 'PRIVATE',
-      projectId: undefined,
-      inviteList: [],
+      title: schedules?.result.title,
+      content: schedules?.result.content,
+      period: {
+        from: new Date(schedules?.result.startDate ?? ''),
+        to: new Date(schedules?.result.endDate ?? ''),
+      },
+      visible: schedules?.result.visible ?? '',
+      projectId: schedules?.result.projectId ?? null,
+      inviteList: schedules?.result.inviteList ?? [],
     },
   })
 
   const editScheduleInfo = useEditScheduleMutation(
     scheduleId,
     {
-      title: form.watch('title'),
-      content: form.watch('content'),
-      startDate: form.watch('startDate').toISOString(),
-      endDate: form.watch('endDate').toISOString(),
-      visible: form.watch('visible') as ScheduleVisibility | undefined,
-      projectId: form.watch('projectId'),
-      inviteList: form.watch('inviteList'),
+      title: form.watch('title') ?? '',
+      content: form.watch('content') ?? '',
+      startDate: form.watch('period').from.toISOString(),
+      endDate: form.watch('period').to.toISOString(),
+      visible: form.watch('visible') as ScheduleVisibility,
+      projectId: form.watch('projectId') || null,
+      inviteList: form.watch('inviteList') || [],
     },
     {
       onSuccess: () => {
         queryClient.invalidateQueries({
           queryKey: ['schedules'],
         })
-
-        console.log('Success', {
-          title: form.watch('title'),
-          content: form.watch('content'),
-          startDate: form.watch('startDate').toISOString(),
-          endDate: form.watch('endDate').toISOString(),
-          visible: form.watch('visible') as ScheduleVisibility | undefined,
-          projectId: form.watch('projectId'),
-          inviteList: form.watch('inviteList'),
-        })
+        closeModal('dimed')
+        closeModal('default')
       },
       onError: (e) => {
         console.log(e)
@@ -356,20 +355,13 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
   )
 
   React.useEffect(() => {
-    if (schedules !== undefined) {
-      form.setValue('title', schedules.result.title)
-      form.setValue('content', schedules.result.content ?? '')
-      form.setValue('startDate', new Date(schedules.result.startDate))
-      form.setValue('endDate', new Date(schedules.result.endDate ?? ''))
-      form.setValue('visible', schedules.result.visible ?? '')
-      // form.setValue('projectId', schedules.result.projectId)
-      // form.setValue('inviteList', schedules.result.inviteList || [])
+    if (form.watch('type') === '개인 일정') {
+      form.setValue('projectId', null)
     }
-  }, [schedules])
+  }, [form.watch('type')])
 
   const onSubmit = () => {
     editScheduleInfo.mutate()
-    closeModal('dimed')
   }
 
   return (
@@ -398,7 +390,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
             <div className="flex flex-col gap-[6px]">
               <DateTimePickerForm
                 form={form}
-                name="startDate"
+                name="period"
                 label="일정 시간"
                 allDay={allDay}
                 setAllDay={setAllDay}
@@ -435,7 +427,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
                       schedules?.result.projectId ?? '',
                     )}
                     label="프로젝트 팀"
-                    name="team"
+                    name="projectId"
                   />
                 )}
               </div>
@@ -480,15 +472,16 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
 
           <div className="flex w-full items-start justify-end gap-[12px] self-stretch">
             <Button
+              type="button"
               title="취소"
               onClick={() => closeModal('dimed')}
-              className="flex flex-[1_0_0] gap-[10px] bg-blue-100"
+              className="flex flex-1 gap-[10px] bg-blue-100"
             >
               <p className="text-body text-blue-500">취소</p>
             </Button>
             <Button
               title="수정"
-              className="flex flex-[1_0_0] gap-[10px]"
+              className="flex flex-1 gap-[10px]"
               disabled={!form.formState.isValid}
               variant={form.formState.isValid ? 'default' : 'disabled'}
             >
@@ -525,6 +518,7 @@ export const ScheduleCheckModal = ({ scheduleId }: { scheduleId: string }) => {
         return '알 수 없음'
     }
   }
+
   const handleEditClick = (schedule: ScheduleInfo) => {
     setSelectedSchedule(schedule)
     openModal('dimed', ModalTypes.EDIT)
