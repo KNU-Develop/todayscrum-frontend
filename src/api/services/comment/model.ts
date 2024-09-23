@@ -1,12 +1,16 @@
 export interface Comment {
   id?: string
   description: string
-  user: string
+  user: CommentUser
   createdAt: string
   masterId?: number[] | []
 }
+export interface CommentUser {
+  name: string
+  imageUrl: string
+}
 export interface InputComment {
-  description: string,
+  description: string
   masterId?: number[] | []
 }
 
