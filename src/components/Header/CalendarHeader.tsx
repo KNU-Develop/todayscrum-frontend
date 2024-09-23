@@ -1,4 +1,4 @@
-import { useProjectInfoQuery, useScheduleListQuery } from '@/api'
+import { useProjectInfoQuery } from '@/api'
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -9,7 +9,7 @@ import {
 import { useModal } from '@/hooks/useModal'
 import { ModalTypes } from '@/hooks/useModal/useModal'
 import { ChevronLeft, ChevronRight, FilterIcon, PlusIcon } from 'lucide-react'
-import React, { useContext, useState } from 'react'
+import React, { Dispatch, SetStateAction, useContext, useEffect } from 'react'
 import { Button } from '../ui/button'
 import {
   Select,
@@ -22,36 +22,40 @@ import {
 } from '../ui/select'
 
 import { CalendarContext } from '@/hooks/useCalendar/calendarContext'
-import { endOfMonth, format, startOfMonth } from 'date-fns'
-import { Monthly, Weekly, Daily, List } from '../Calendar'
 import {
   RepeatScheduleDeleteModal,
   ScheduleCreateModal,
   ScheduleRepeatModal,
 } from '../Modal/ScheduleModal'
 
-export const CalendarHeader = () => {
+export const CalendarHeader = ({
+  view,
+  setView,
+}: {
+  view: string
+  setView: Dispatch<SetStateAction<string>>
+}) => {
   const { modals, openModal } = useModal()
   const state = useContext(CalendarContext)
 
-  const startDate = format(startOfMonth(state.date), 'yyyy-MM-dd')
-  const endDate = format(endOfMonth(state.date), 'yyyy-MM-dd')
-
-  const { data: schedules } = useScheduleListQuery(startDate, endDate)
   const { data: projects } = useProjectInfoQuery()
 
-  const [selectedView, setSelectedView] = useState('month')
-
-  // 선택된 프로젝트에 따라 스케줄 필터링
-  const schedule =
-    schedules?.result?.filter((schedule) => {
-      const isProjectSelected = state.selectedProject[schedule.projectId || '']
-      const isMySchedule = state.myCalendar && !schedule.projectId
-      return isProjectSelected || isMySchedule
-    }) || []
+  useEffect(() => {
+    // projects가 유효하고, selectedProject가 설정되어 있지 않을 경우에만 실행
+    if (projects?.result && Object.keys(state.selectedProject).length === 0) {
+      const initialSelectedProjects = projects.result.reduce(
+        (acc: { [key: string]: boolean }, project: any) => {
+          acc[project.id] = true
+          return acc
+        },
+        {},
+      )
+      state.setSelectedProject(initialSelectedProjects)
+    }
+  }, [projects, state.selectedProject, state])
 
   const handleSelectChange = (value: string) => {
-    setSelectedView(value)
+    setView(value)
   }
 
   const handleCheckedChange = (projectId: string) => {
@@ -74,7 +78,7 @@ export const CalendarHeader = () => {
             {(state.date.getMonth() + 1).toString().padStart(2, '0')}월
           </p>
           <Button
-            onClick={() => state.handlePrev(selectedView)}
+            onClick={() => state.handlePrev(view)}
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -82,7 +86,7 @@ export const CalendarHeader = () => {
             <ChevronLeft size={16} />
           </Button>
           <Button
-            onClick={() => state.handleNext(selectedView)}
+            onClick={() => state.handleNext(view)}
             variant="outline"
             size="icon"
             className="h-8 w-8"
@@ -132,14 +136,14 @@ export const CalendarHeader = () => {
             <PlusIcon size={16} />
             <p className="text-subtle">일정 추가</p>
           </Button>
-          <Select value={selectedView} onValueChange={handleSelectChange}>
+          <Select value={view} onValueChange={handleSelectChange}>
             <SelectTrigger className="w-[160px]">
               <SelectValue>
-                {selectedView === 'day'
+                {view === 'day'
                   ? '일(Daily)'
-                  : selectedView === 'week'
+                  : view === 'week'
                     ? '주(Weekly)'
-                    : selectedView === 'month'
+                    : view === 'month'
                       ? '월(Monthly)'
                       : '일정(List)'}
               </SelectValue>
@@ -156,29 +160,6 @@ export const CalendarHeader = () => {
           </Select>
         </div>
       </div>
-      {selectedView === 'day' ? (
-        <Daily
-          date={state.date}
-          schedules={schedule}
-          projects={projects?.result?.map((project) => ({
-            uid: project.id,
-            title: project.title,
-          }))}
-        />
-      ) : null}
-      {selectedView === 'list' ? (
-        <List schedules={schedule} projects={projects?.result} />
-      ) : null}
-      {selectedView === 'week' ? (
-        <Weekly date={state.date} schedules={schedule} />
-      ) : null}
-      {selectedView === 'month' ? (
-        <Monthly
-          date={state.date}
-          schedules={schedule}
-          projects={projects?.result}
-        />
-      ) : null}
 
       {modals.default.open && modals.default.type === ModalTypes.CREATE && (
         <ScheduleCreateModal />
