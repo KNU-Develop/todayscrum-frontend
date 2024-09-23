@@ -1,4 +1,4 @@
-import React, { useState, useEffect, SetStateAction } from 'react'
+import React, { useState, useEffect, SetStateAction, useRef } from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
 import { da, id, ko } from 'date-fns/locale'
@@ -475,6 +475,23 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const [search, setSearch] = useState('')
   const [showSearchInput, setShowSearchInput] = useState(false)
 
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        inputRef.current &&
+        !inputRef.current.contains(event.target as Node)
+      ) {
+        setShowSearchInput(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [inputRef])
+
   const handleToggleDropdown = () => {
     setDropdownVisible(!isDropdownVisible)
   }
@@ -556,40 +573,45 @@ const FilterBar: React.FC<FilterBarProps> = ({
           strokeLinejoin="round"
         />
       </svg>
-      {showSearchInput ? (
-        <input
-          type="text"
-          placeholder="제목으로 검색하기"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="w-[384px] flex-grow rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-      ) : (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          onClick={() => setShowSearchInput(true)}
-          className="cursor-pointer"
-        >
-          <path
-            d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
-            stroke="black"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
+      <div className="relative">
+        {showSearchInput ? (
+          <input
+            ref={inputRef}
+            type="text"
+            placeholder="제목으로 검색하기"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className={`w-[384px] flex-grow rounded border px-2 py-1 transition-opacity duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+              showSearchInput ? 'opacity-100' : 'opacity-0'
+            }`}
           />
-          <path
-            d="M21.0004 21.0004L16.6504 16.6504"
-            stroke="black"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )}
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            onClick={() => setShowSearchInput(true)}
+            className="cursor-pointer"
+          >
+            <path
+              d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+              stroke="black"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M21.0004 21.0004L16.6504 16.6504"
+              stroke="black"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        )}
+      </div>
       <div className="relative">
         <svg
           xmlns="http://www.w3.org/2000/svg"
