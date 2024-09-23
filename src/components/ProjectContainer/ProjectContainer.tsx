@@ -1178,7 +1178,7 @@ const TeamBoard = ({ project }: { project: ProjectInfo }) => {
                 <div className="text-gray-400">No Image</div>
               )}
             </div>
-            <div className="py-[8px]">
+            <div className="min-h-[60px] py-[8px]">
               <h3 className="text-[14px] font-semibold">{member.name}</h3>
               <p className="text-[12px] text-gray-600">{member.mbti}</p>
               <span className="font-semibold">
