@@ -6,12 +6,13 @@ export {
 
 // USER
 export { UserStatus } from './services/user/model'
-export type { UserInfoResponse } from './services/user/model'
+export type { UserInfoResponse, EditUserColorDTO } from './services/user/model'
 export {
   useEditUserMutation,
   useUserInfoQuery,
   useUserOptionalMutation,
   useUserSignUpMutation,
+  useEditUserColor
 } from './services/user/quries'
 export { userService } from './services/user/service'
 
@@ -35,6 +36,7 @@ export {
   useDeleteProjectInfo,
   useInviteTeamInfo,
   useDeleteTeamInfo,
+  useEditProjectColor,
 } from './services/project/quries'
 
 //Schedule

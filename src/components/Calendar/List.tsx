@@ -2,7 +2,7 @@
 import * as React from 'react'
 import { formatDate } from '@/hooks/useCalendar'
 import { getDotColor } from './style'
-import { ProjectInfo, ScheduleInfo } from '@/api'
+import { ProjectInfo, ScheduleInfo, useUserInfoQuery } from '@/api'
 import { format } from 'date-fns'
 
 interface ListProps {
@@ -11,6 +11,7 @@ interface ListProps {
 }
 
 export function List({ schedules, projects }: ListProps) {
+  const { data: userInfo } = useUserInfoQuery() // 사용자 정보 가져오기
   const groupedSchedules: Record<string, ScheduleInfo[]> = {}
   const today = format(new Date(), 'yyyy-MM-dd')
 
@@ -67,9 +68,10 @@ export function List({ schedules, projects }: ListProps) {
   }
 
   const getProjectColor = (projectId: string) => {
-    return (
-      projects?.find((project) => project.id === projectId)?.color || '#ccc'
-    )
+    const projectColor = projects?.find(
+      (project) => project.id === projectId,
+    )?.color
+    return projectColor || userInfo?.result.color || '#ccc' // 프로젝트 색상이 없으면 사용자 색상 사용
   }
 
   return (

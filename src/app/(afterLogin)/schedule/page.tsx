@@ -1,10 +1,13 @@
 'use client'
 import {
   EditProjectDTO,
+  EditUserColorDTO,
   useEditProjectColor,
   useEditProjectInfo,
+  useEditUserColor,
   useProjectInfoQuery,
   useScheduleListQuery,
+  useUserInfoQuery,
 } from '@/api'
 import { CalendarHeader } from '@/components/Header/CalendarHeader'
 import { MiniCalendar } from '@/components/Calendar/Calendar'
@@ -25,6 +28,7 @@ const Page = () => {
 
   const { data: schedules } = useScheduleListQuery(startDate, endDate)
   const { data: projects } = useProjectInfoQuery()
+  const {data:userInfo} = useUserInfoQuery()
 
   const [selectedView, setSelectedView] = React.useState('month')
 
@@ -43,7 +47,14 @@ const Page = () => {
     onError: (e) => console.log(e),
   })
 
-  const handleColorChange = (uid: string, newColor: string) => {
+  const editUserColor = useEditUserColor({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] })
+    },
+    onError: (e) => console.log(e),
+  })
+
+  const handleProjectColorChange = (uid: string, newColor: string) => {
     const projectToUpdate = projects?.result?.find(
       (project) => project.id == uid,
     )
@@ -58,6 +69,11 @@ const Page = () => {
     }
   }
 
+  const handleUserColorChange = (newColor: string) => {
+    const colorUpdate: EditUserColorDTO = { color: newColor }
+    editUserColor.mutate(colorUpdate)
+  }
+
   return (
     <div className="m-auto flex w-[1180px]">
       <div className="flex flex-col gap-6">
@@ -69,7 +85,7 @@ const Page = () => {
               <TextGradientGenerator
                 initialColor={project.color}
                 onColorChange={(newColor) =>
-                  handleColorChange(project.id, newColor)
+                  handleProjectColorChange(project.id, newColor)
                 }
               />
               <p className="text-small">{project.title}</p>
@@ -77,10 +93,8 @@ const Page = () => {
           ))}
           <div className="flex items-center gap-2">
             <TextGradientGenerator
-              initialColor="bg-slate-100"
-              onColorChange={(newColor) =>
-                handleColorChange('myCalendar', newColor)
-              }
+              initialColor={userInfo?.result.color || 'bg-slate-100'}
+              onColorChange={(newColor) => handleUserColorChange(newColor)}
             />
             <p className="text-small">나의 일정</p>
           </div>

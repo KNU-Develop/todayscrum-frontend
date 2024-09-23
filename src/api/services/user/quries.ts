@@ -7,6 +7,8 @@ import {
   useQueryClient,
 } from '@tanstack/react-query'
 import {
+  DefaultResponse,
+  EditUserColorDTO,
   EditUserInfoDTO,
   UserInfoResponse,
   UserOptionalInfoDTO,
@@ -28,6 +30,10 @@ export const userOptions = {
   userEdit: (client: QueryClient, dto: EditUserInfoDTO) => ({
     mutationFn: () => userService.userEdit(client, dto),
   }),
+  userEditColor: (client: QueryClient) => ({
+    mutationFn: (dto: EditUserColorDTO) =>
+      userService.userEditColor(client, dto)
+  })
 }
 
 export const useUserInfoQuery = (
@@ -74,5 +80,16 @@ export const useEditUserMutation = (
   return useMutation({
     ...userOptions.userEdit(queryClient, dto),
     ...options,
+  })
+}
+
+export const useEditUserColor = (
+  options: MutationOptions<DefaultResponse, Error, EditUserColorDTO>={}
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...userOptions.userEditColor(queryClient),
+    ...options
   })
 }

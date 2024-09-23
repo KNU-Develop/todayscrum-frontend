@@ -39,6 +39,7 @@ export interface UserInfoResponse {
     stackNames: string[]
     mbti: string
     imageUrl: string
+    color: string
   }
 }
 
@@ -68,6 +69,9 @@ export interface EditUserInfoDTO {
   imageUrl: string
 }
 
+export interface EditUserColorDTO {
+  color: string
+}
 export interface DefaultResponse {
   code: string
 }
