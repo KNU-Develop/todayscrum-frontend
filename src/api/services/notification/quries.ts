@@ -15,9 +15,9 @@ export const NotificationOptions = {
     queryKey: ['notificationList'],
     queryFn: () => NotificationService.notificationListInfo(client),
   }),
-  NotificationPost: (client: QueryClient, uid: string) => ({
+  NotificationPost: (client: QueryClient) => ({
     mutationFn: (dto: InputNotification) =>
-      NotificationService.notificationPost(client, uid, dto),
+      NotificationService.notificationPost(client, dto.id || 0, dto),
   }),
 }
 export const useNotificationListQuery = (
@@ -31,7 +31,6 @@ export const useNotificationListQuery = (
   })
 }
 export const useNotificationPost = (
-  uid: string,
   options: MutationOptions<
     NotificationResponse<null>,
     Error,
@@ -41,7 +40,7 @@ export const useNotificationPost = (
   const queryClient = useQueryClient()
 
   return useMutation<NotificationResponse<null>, Error, InputNotification>({
-    ...NotificationOptions.NotificationPost(queryClient, uid),
+    ...NotificationOptions.NotificationPost(queryClient),
     ...options,
   })
 }

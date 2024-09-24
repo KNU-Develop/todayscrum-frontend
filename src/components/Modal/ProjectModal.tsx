@@ -45,7 +45,7 @@ export const ProjectCreateModal = () => {
   })
 
   const successToast = () => {
-    const time = format(new Date(), 'yyyy년 MM월 dd일 HH시 ss분', {
+    const time = format(new Date(), 'yyyy년 MM월 dd일 HH시 mm분', {
       locale: ko,
     })
 
@@ -148,7 +148,7 @@ export const ProjectEditModal = ({ project }: { project: ProjectInfo }) => {
   })
 
   const ShowToast = () => {
-    const time = format(new Date(), 'yyyy년 MM월 dd일 HH시 ss분', {
+    const time = format(new Date(), 'yyyy년 MM월 dd일 HH시 mm분', {
       locale: ko,
     })
 
@@ -209,6 +209,7 @@ export const ProjectEditModal = ({ project }: { project: ProjectInfo }) => {
           </div>
           <div className="flex w-full gap-3">
             <Button
+              type="button"
               title="닫기"
               variant="secondary"
               className="flex-1"
@@ -237,7 +238,7 @@ export const ProjectDeleteModal = ({ uid }: { uid: string }) => {
   const queryClient = useQueryClient()
 
   const ShowToast = () => {
-    const time = format(new Date(), 'yyyy년 MM월 dd일 HH시 ss분', {
+    const time = format(new Date(), 'yyyy년 MM월 dd일 HH시 mm분', {
       locale: ko,
     })
 
