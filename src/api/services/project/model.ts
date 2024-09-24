@@ -61,7 +61,7 @@ export interface TeamInfo {
   choice: ProjectInviteStatus
   role: ProjectUserRole
   location: string
-  mbit: string
+  mbti: string
   imageUrl: string
   color: string
   attend: string
