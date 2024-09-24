@@ -1,7 +1,7 @@
 import React, { useState, useEffect, SetStateAction } from 'react'
 import { Calendar } from '@/components/ui/calendar'
 import { Checkbox } from '@/components/ui/checkbox'
-import { da, id, ko } from 'date-fns/locale'
+import { da, fr, id, ko } from 'date-fns/locale'
 import { ProjectInfo, useProjectInfoQuery, useUserInfoQuery } from '@/api'
 import { format } from 'date-fns'
 import { Check } from 'lucide-react'
@@ -24,9 +24,15 @@ import {
 } from '@/api/services/board/model'
 import { QueryClient, useQueryClient } from '@tanstack/react-query'
 import { error, time } from 'console'
-import { ProjectUserInfo } from '@/api/services/project/model'
+import { ProjectUserInfo, TeamInfo } from '@/api/services/project/model'
 import { toast } from 'sonner'
 import { useRouter } from 'next/navigation'
+import { ParticipateForm } from '../InputForm'
+import { SubmitHandler, useForm, UseFormReturn } from 'react-hook-form'
+import { Form } from '../ui/form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { fromCreateBoard } from '@/hooks/useVaild/useBoard'
+import { z } from 'zod'
 
 interface TeamCheckboxProps {
   id: string
@@ -53,14 +59,12 @@ export interface BoardItem {
 }
 
 interface StatusDropdownProps {
-  currentStatus: string
-  onChangeStatus: (newStatus: BoardProgress) => void
+  form: UseFormReturn<z.infer<any>>
   onClose: () => void
 }
 
 interface CategoryDropdownProps {
-  currentCategory: string
-  onChangeCategory: React.Dispatch<SetStateAction<BoardCategory>>
+  form: UseFormReturn<z.infer<any>>
   onClose: () => void
 }
 
@@ -118,148 +122,151 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
   onClose,
   onCreate,
 }) => {
-  const [title, setTitle] = useState('')
-  const [mastersId, setMaster] = useState<string>('')
-  const [progress, setProgress] = useState<BoardProgress>(BoardProgress.problem)
-  const [category, setCategory] = useState<BoardCategory>(BoardCategory.issue)
-  const [content, setContent] = useState('')
   const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false)
   const [isCategoryDropdownOpen, setIsCategoryDropdownOpen] = useState(false)
+  const [masters, setMasters] = useState<TeamInfo[]>([])
+
+  const form = useForm({
+    resolver: zodResolver(fromCreateBoard),
+    mode: 'onChange',
+    defaultValues: {
+      title: '',
+      progress: BoardProgress.problem,
+      category: BoardCategory.issue,
+      content: '',
+      mastersId: [] as number[],
+    },
+  })
 
   useEffect(() => {
-    if (!isOpen) {
-      setTitle('')
-      setMaster('')
-      setProgress(BoardProgress.problem)
-      setCategory(BoardCategory.issue)
-      setContent('')
-    }
-  }, [isOpen])
+    console.log(form.watch('category'))
+  }, [form.watch('category')])
 
   if (!isOpen) return null
 
-  const handleCreate = () => {
-    const masters = mastersId
-      .split(',')
-      .map((num) => parseInt(num.trim(), 10))
-      .filter((num) => !isNaN(num))
-
-    onCreate({ title, mastersId: masters, progress, category, content })
+  const onSubmit = () => {
+    const invitedList =
+      masters.map((item) => parseInt(item.id, 10)).filter((id) => !isNaN(id)) ||
+      []
+    onCreate({
+      title: form.watch('title'),
+      progress: form.watch('progress'),
+      category: form.watch('category'),
+      content: form.watch('content'),
+      mastersId: invitedList,
+    })
+    form.reset({
+      title: '',
+      progress: BoardProgress.problem,
+      category: BoardCategory.issue,
+      content: '',
+      mastersId: [] as number[],
+    })
     onClose()
   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="w-[448px] rounded-md bg-white p-6 shadow-lg">
-        <div className="flex justify-between">
-          <h2 className="mb-4 flex text-center text-lg font-bold">
-            게시글 작성
-          </h2>
-          <div
-            className="relative font-pretendard text-[14px] font-medium leading-[14px]"
-            onClick={() => setIsCategoryDropdownOpen(!isCategoryDropdownOpen)}
-          >
-            <div className="flex gap-[4px] px-4 py-2">
-              {category}
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <div className="w-[448px] rounded-md bg-white p-6 shadow-lg">
+            <div className="flex justify-between">
+              <h2 className="mb-4 flex text-center text-lg font-bold">
+                게시글 작성
+              </h2>
+              <div
+                className="relative font-pretendard text-[14px] font-medium leading-[14px]"
+                onClick={() =>
+                  setIsCategoryDropdownOpen(!isCategoryDropdownOpen)
+                }
               >
-                <path
-                  d="M4 6L8 10L12 6"
-                  stroke="#374151"
-                  stroke-width="1.33333"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
+                <div className="flex gap-[4px] px-4 py-2">
+                  {form.watch('category')}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="16"
+                    height="16"
+                    viewBox="0 0 16 16"
+                    fill="none"
+                  >
+                    <path
+                      d="M4 6L8 10L12 6"
+                      stroke="#374151"
+                      stroke-width="1.33333"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                    />
+                  </svg>
+                </div>
+                {isCategoryDropdownOpen && (
+                  <CategoryDropdown
+                    form={form}
+                    onClose={() => setIsCategoryDropdownOpen(false)}
+                  />
+                )}
+              </div>
             </div>
-            {isCategoryDropdownOpen && (
-              <CategoryDropdown
-                currentCategory={category}
-                onChangeCategory={setCategory}
-                onClose={() => setIsCategoryDropdownOpen(false)}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700">
+                게시글 제목
+              </label>
+              <input
+                type="text"
+                {...form.register('title')}
+                className="mt-[6px] w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="제목"
               />
-            )}
+            </div>
+            <div>
+              <ParticipateForm
+                form={form}
+                participates={masters}
+                setParticipates={setMasters}
+              />
+            </div>
+            <div className="relative mb-4 mt-3">
+              <label className="block text-sm font-medium text-gray-700">
+                진행 상태
+              </label>
+              <div
+                className="mt-1 w-full cursor-pointer rounded border bg-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
+              >
+                <div className="px-4 py-2">{form.watch('progress')}</div>
+              </div>
+              {isStatusDropdownOpen && (
+                <StatusDropdown
+                  className="top-13 w-full"
+                  form={form}
+                  onClose={() => setIsStatusDropdownOpen(false)}
+                />
+              )}
+            </div>
+            <div className="mb-4 h-[117px] w-full">
+              <label className="block text-sm font-medium text-gray-700">
+                게시글 내용
+              </label>
+              <textarea
+                {...form.register('content')}
+                className="mt-[6px] h-full w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="내용을 적어 주세요."
+              />
+            </div>
+            <div className="mt-12 flex justify-center space-x-4">
+              <button
+                type="button"
+                onClick={onClose}
+                className="w-[186px] rounded bg-[#DBEAFE] px-4 py-2 text-[#3B82F6]"
+              >
+                취소
+              </button>
+              <button className="w-[186px] rounded bg-[#007AFF] px-4 py-2 text-white">
+                생성
+              </button>
+            </div>
           </div>
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            게시글 제목
-          </label>
-          <input
-            type="text"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="mt-[6px] w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="제목"
-          />
-        </div>
-
-        <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            담당자
-          </label>
-          <input
-            type="text"
-            value={mastersId}
-            onChange={(e) => setMaster(e.target.value)}
-            className="mt-[6px] w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="@이름, 이메일로 담당자 추가"
-          />
-        </div>
-
-        <div className="relative mb-4">
-          <label className="block text-sm font-medium text-gray-700">
-            진행 상태
-          </label>
-          <div
-            className="mt-1 w-full cursor-pointer rounded border bg-white shadow-sm focus:border-blue-500 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
-            onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-          >
-            <div className="px-4 py-2">{progress}</div>
-          </div>
-          {isStatusDropdownOpen && (
-            <StatusDropdown
-              className="top-13 w-full"
-              currentStatus={progress}
-              onChangeStatus={setProgress}
-              onClose={() => setIsStatusDropdownOpen(false)}
-            />
-          )}
-        </div>
-
-        <div className="mb-4 h-[117px] w-full">
-          <label className="block text-sm font-medium text-gray-700">
-            게시글 내용
-          </label>
-          <textarea
-            value={content}
-            onChange={(e) => setContent(e.target.value)}
-            className="mt-[6px] h-full w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="내용을 적어 주세요."
-          />
-        </div>
-
-        <div className="mt-12 flex justify-center space-x-4">
-          <button
-            onClick={onClose}
-            className="w-[186px] rounded bg-[#DBEAFE] px-4 py-2 text-[#3B82F6]"
-          >
-            취소
-          </button>
-          <button
-            onClick={handleCreate}
-            className="w-[186px] rounded bg-[#007AFF] px-4 py-2 text-white"
-          >
-            생성
-          </button>
-        </div>
-      </div>
+        </form>
+      </Form>
     </div>
   )
 }
@@ -267,8 +274,7 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
 const StatusDropdown: React.FC<
   StatusDropdownProps & { className?: string }
 > = ({
-  currentStatus,
-  onChangeStatus,
+  form,
   onClose,
   className = 'w-[130px] top-4', // Default width
 }) => {
@@ -286,10 +292,10 @@ const StatusDropdown: React.FC<
         <div
           key={status}
           className={`flex cursor-pointer items-center px-4 py-2 text-center hover:bg-gray-100 ${
-            status === currentStatus ? 'font-bold text-blue-600' : ''
+            status === form.watch('progress') ? 'font-bold text-blue-600' : ''
           }`}
           onClick={() => {
-            onChangeStatus(status)
+            form.setValue('progress', status)
             onClose()
           }}
         >
@@ -301,7 +307,8 @@ const StatusDropdown: React.FC<
             fill="none"
             className="mr-2"
             style={{
-              visibility: status === currentStatus ? 'visible' : 'hidden',
+              visibility:
+                status === form.watch('progress') ? 'visible' : 'hidden',
             }}
           >
             <path
@@ -320,8 +327,9 @@ const StatusDropdown: React.FC<
 }
 
 const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
-  currentCategory,
-  onChangeCategory,
+  // currentCategory,
+  // onChangeCategory,
+  form,
   onClose,
 }) => {
   const categories = [BoardCategory.issue, BoardCategory.feadback]
@@ -332,10 +340,10 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
         <div
           key={category}
           className={`flex cursor-pointer items-center px-4 py-2 text-center hover:bg-gray-100 ${
-            category === currentCategory ? 'font-bold text-blue-600' : ''
+            category === form.watch('category') ? 'font-bold text-blue-600' : ''
           }`}
           onClick={() => {
-            onChangeCategory(category)
+            form.setValue('category', category)
             onClose()
           }}
         >
@@ -347,7 +355,8 @@ const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
             fill="none"
             className="mr-2"
             style={{
-              visibility: category === currentCategory ? 'visible' : 'hidden',
+              visibility:
+                category === form.watch('category') ? 'visible' : 'hidden',
             }}
           >
             <path
@@ -697,7 +706,7 @@ const Board: React.FC<BoardProps> = ({
     key: keyof BoardDto
     direction: string
   } | null>(null)
-  const [activeDropdown, setActiveDropdown] = useState<number | null>(null)
+  const [activeDropdown, setActiveDropdown] = useState(false)
   const queryClient = useQueryClient()
   const route = useRouter()
 
@@ -789,8 +798,15 @@ const Board: React.FC<BoardProps> = ({
     onError: () => toast('보드 수정 실패', { duration: 3000 }),
   })
 
-  const handleStatusClick = (index: number) => {
-    setActiveDropdown(activeDropdown === index ? null : index)
+  const form = useForm({
+    defaultValues: {
+      progress: BoardProgress.problem,
+    },
+  })
+
+  const handleStatusClick = (status: BoardProgress) => {
+    // setActiveDropdown(activeDropdown === index ? null : index)
+    setActiveDropdown(true)
   }
 
   const handleChangeStatus = (index: number, newStatus: BoardProgress) => {
@@ -808,7 +824,7 @@ const Board: React.FC<BoardProps> = ({
     items[index].progress = newStatus
   }
 
-  const renderStatus = (status: BoardProgress, index: number) => {
+  const renderStatus = (status: BoardProgress) => {
     return (
       <div
         className={`relative flex w-[75px] cursor-pointer items-center rounded-[15px] ${
@@ -818,7 +834,7 @@ const Board: React.FC<BoardProps> = ({
               ? 'bg-blue-200'
               : 'bg-green-200'
         } px-[8px]`}
-        onClick={() => handleStatusClick(index)}
+        onClick={() => handleStatusClick(status)}
       >
         <span
           className={`h-2.5 w-2.5 rounded-full ${
@@ -836,15 +852,15 @@ const Board: React.FC<BoardProps> = ({
               ? '진행중'
               : '완료'}
         </span>
-        {activeDropdown === index && (
+        {
+          // 새로운 컴포넌트 넣는게 좋아보임
+          /* {activeDropdown && (
           <StatusDropdown
-            currentStatus={status}
-            onChangeStatus={(newStatus: BoardProgress) =>
-              handleChangeStatus(index, newStatus)
-            }
-            onClose={() => setActiveDropdown(null)}
+            form={form}
+            onClose={() => setActiveDropdown(false)}
           />
-        )}
+        )} */
+        }
       </div>
     )
   }
@@ -1016,7 +1032,7 @@ const Board: React.FC<BoardProps> = ({
                   className="relative w-[100px] border-b px-4 py-2"
                   onClick={(e) => e.stopPropagation()}
                 >
-                  {renderStatus(item.progress, index)}
+                  {renderStatus(item.progress)}
                 </td>
               </tr>
             ))}

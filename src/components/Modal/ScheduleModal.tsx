@@ -19,6 +19,7 @@ import {
   DeleteScheduleType,
   ScheduleInfo,
   ScheduleVisibility,
+  TeamInfo,
   useAddScheduleMutation,
   useDeleteScheduleMutation,
   useEditScheduleMutation,
@@ -45,13 +46,7 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Modal, ScheduleModal } from './Modal'
-
-interface Participate {
-  imageUrl: string
-  name: string
-  email: string
-  attend: string
-}
+import { string } from 'zod'
 
 const getRepeatOptions = (date: Date) => {
   const dayOfWeekNames = [
@@ -83,12 +78,13 @@ export const ScheduleCreateModal = () => {
   const queryClient = useQueryClient()
 
   const [allDay, setAllDay] = React.useState(false)
-  const [participates, setParticipates] = React.useState<Participate[]>([])
+  const [participates, setParticipates] = React.useState<TeamInfo[]>([])
   const [selectedDate, setSelectedDate] = React.useState(new Date())
   const [selectedEndDate, setSelectedEndDate] = React.useState<
     Date | undefined
   >(undefined)
   const [selectedRepeat, setSelectedRepeat] = React.useState('반복 안함')
+  const [selectedId, setSelectedId] = React.useState('')
 
   const repeatOptions = getRepeatOptions(selectedDate)
 
@@ -109,7 +105,7 @@ export const ScheduleCreateModal = () => {
       period: { from: new Date(), to: new Date() },
       visible: 'PRIVATE',
       projectId: null,
-      inviteList: [],
+      inviteList: [] as string[],
     },
   })
 
@@ -165,7 +161,13 @@ export const ScheduleCreateModal = () => {
     }
   }
 
-  function onSubmit() {
+  const onSubmit = () => {
+    // 이제 ParticipateForm에서 팀원 선택하고, 생성 완료시, 팀원 id 추출 후 전달함
+    // 이후 동작은 Calendar에서 필요에 따라 수정
+    const invitedList = participates.map((item) => item.id) || []
+    form.setValue('inviteList', Array.isArray(invitedList) ? invitedList : [])
+    console.log(form.watch('inviteList'))
+
     addScheduleInfo.mutate()
   }
 
@@ -311,7 +313,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
   const queryClient = useQueryClient()
 
   const [allDay, setAllDay] = React.useState(false)
-  const [participates, setParticipates] = React.useState<Participate[]>([])
+  const [participates, setParticipates] = React.useState<TeamInfo[]>([])
   const [selectedDate, setSelectedDate] = React.useState(new Date())
   const [selectedEndDate, setSelectedEndDate] = React.useState<
     Date | undefined

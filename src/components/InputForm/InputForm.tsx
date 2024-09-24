@@ -55,6 +55,9 @@ import {
   DropdownMenuTrigger,
 } from '../ui/dropdown-menu'
 import { Textarea } from '../ui/textarea'
+import { TeamInfo, useProjectInfoQuery, useTeamInfoQuery } from '@/api'
+import { useQuery } from '@tanstack/react-query'
+import { usePathname } from 'next/navigation'
 
 interface entry {
   tool: string
@@ -98,8 +101,8 @@ interface infoFormType {
 
 interface participateFormType {
   form: UseFormReturn<z.infer<any>>
-  participates: participate[]
-  setParticipates: React.Dispatch<React.SetStateAction<participate[]>>
+  participates: TeamInfo[]
+  setParticipates: React.Dispatch<React.SetStateAction<TeamInfo[]>>
 }
 
 interface mbtiFormType {
@@ -697,42 +700,33 @@ export const ParticipateForm = ({
   setParticipates,
 }: participateFormType) => {
   const [searchTerm, setSearchTerm] = React.useState('')
-  const [searchResults, setSearchResults] = React.useState<participate[]>([])
+  const [searchResults, setSearchResults] = React.useState<TeamInfo[]>([])
+  const path = usePathname()
+  const id = path.split('/').pop()
 
-  const defaultParticipants: participate[] = [
-    {
-      imageUrl: '',
-      name: '홍길동',
-      email: 'hong@example.com',
-      attend: '참석',
-    },
-    {
-      imageUrl: '',
-      name: '김철수',
-      email: 'kim@example.com',
-      attend: '불참',
-    },
-    {
-      imageUrl: '',
-      name: '이영희',
-      email: 'lee@example.com',
-      attend: '미정',
-    },
-  ]
+  const projectList = useProjectInfoQuery().data?.result
+  const selectedId =
+    projectList?.find((item) => item.title === form.watch('projectId'))?.id ||
+    id ||
+    ''
+  const userList = useTeamInfoQuery(selectedId).data?.result || []
 
   React.useEffect(() => {
     if (searchTerm.startsWith('@')) {
       const filterTerm = searchTerm.slice(1).trim().toLowerCase()
-      const results = defaultParticipants.filter(
+      const results = userList.filter(
         (participant) =>
-          participant.name.toLowerCase().includes(filterTerm) ||
-          participant.email.toLowerCase().includes(filterTerm),
+          (participant.name.toLowerCase().includes(filterTerm) ||
+            participant.email.toLowerCase().includes(filterTerm)) &&
+          !participates.some((item) => item.email === participant.email),
       )
       setSearchResults(results)
     } else if (searchTerm.trim() !== '') {
       const filterTerm = searchTerm.trim().toLowerCase()
-      const results = defaultParticipants.filter((participant) =>
-        participant.email.toLowerCase().includes(filterTerm),
+      const results = userList.filter(
+        (participant) =>
+          participant.email.toLowerCase().includes(filterTerm) &&
+          !participates.some((item) => item.email === participant.email),
       )
       setSearchResults(results)
     } else {
@@ -744,10 +738,15 @@ export const ParticipateForm = ({
     setSearchTerm(e.target.value)
   }
 
-  const handleAddParticipant = (participant: participate) => {
-    setParticipates((prev) => [...prev, participant])
-    setSearchTerm('')
-    setSearchResults([])
+  const handleAddParticipant = (participant: TeamInfo) => {
+    const isAdded = participates.some(
+      (item) => item.email === participant.email,
+    )
+    if (!isAdded) {
+      setParticipates((prev) => [...prev, participant])
+      setSearchTerm('')
+      setSearchResults([])
+    }
   }
 
   const handleRemoveParticipant = (index: number) => {
@@ -811,7 +810,7 @@ export const ParticipateForm = ({
                 <p
                   className={`text-detail ${getAttendClass(participant.attend)}`}
                 >
-                  {participant.attend}
+                  {participant.attend ? participant.attend : '전송'}
                 </p>
                 <XIcon
                   className="h-4 w-4 cursor-pointer"
