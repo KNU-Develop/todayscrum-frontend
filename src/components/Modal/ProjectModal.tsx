@@ -169,6 +169,7 @@ export const ProjectEditModal = ({ project }: { project: ProjectInfo }) => {
     project.id,
     {
       onSuccess: () => {
+        queryClient.invalidateQueries({ queryKey: ['project', project.id] })
         queryClient.invalidateQueries({ queryKey: ['projectList'] })
         ShowToast()
 

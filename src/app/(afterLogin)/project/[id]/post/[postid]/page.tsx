@@ -64,10 +64,10 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
           <div className="flex items-center gap-[8px]">
             <ProfileAvatar
               size="32"
-              imageUrl={comment.user}
-              name={comment.user}
+              imageUrl={comment.user.imageUrl}
+              name={comment.user.name}
             />
-            <div className="author">{comment.user}</div>
+            <div className="author">{comment.user.name}</div>
           </div>
           <div className="flex items-end text-[12px]">
             {format(comment.createdAt, 'yy.MM.dd HH:mm (EEE)', {
@@ -75,7 +75,7 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
             })}
           </div>
         </div>
-        {user.data?.result.name === comment.user && (
+        {user.data?.result.name === comment.user.name && (
           <div className="flex gap-[12px]">
             {isEditing ? (
               <>
