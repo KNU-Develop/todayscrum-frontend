@@ -107,6 +107,7 @@ export const ProjectCreateModal = () => {
           <div className="flex w-full gap-3">
             <Button
               title="닫기"
+              type="button"
               variant="secondary"
               className="flex-1"
               onClick={() => closeModal('dimed')}
