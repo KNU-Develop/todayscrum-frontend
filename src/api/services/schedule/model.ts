@@ -1,3 +1,5 @@
+import { string } from "zod"
+
 export enum ScheduleVisibility {
   PUBLIC = 'PUBLIC',
   PRIVATE = 'PRIVATE',
@@ -9,6 +11,11 @@ export enum DeleteScheduleType {
   ALL = 'ALL',
 }
 
+export enum InviteStatus {
+  ACCEPTED = 'ACCEPTED',
+  WAIT = 'WAIT',
+  DECLINED = 'DECLINED',
+}
 export interface ScheduleInfo {
   id: string
   title: string
@@ -71,6 +78,17 @@ export interface DeleteScheduleResponse {
   code: number
   message: string
   data: null
+}
+
+export interface Invite {
+  id: string,
+  name: string,
+  email: string
+  state: InviteStatus
+}
+
+export interface InviteResponse {
+  inviteList: Invite[]
 }
 
 export interface DefaultResponse {

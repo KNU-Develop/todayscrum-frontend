@@ -25,6 +25,8 @@ import {
   useEditScheduleMutation,
   useProjectInfoQuery,
   useScheduleDetailQuery,
+  useTeamInfoQuery,
+  useUserInfoQuery,
 } from '@/api'
 import { useQueryClient } from '@tanstack/react-query'
 import { formatDateTime } from '@/hooks/useCalendar'
@@ -46,7 +48,8 @@ import { Input } from '../ui/input'
 import { Label } from '../ui/label'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Modal, ScheduleModal } from './Modal'
-import { string } from 'zod'
+import { ScheduleParticipateForm } from '../InputForm/InputForm'
+import { Invite, InviteStatus } from '@/api/services/schedule/model'
 
 const getRepeatOptions = (date: Date) => {
   const dayOfWeekNames = [
@@ -84,11 +87,11 @@ export const ScheduleCreateModal = () => {
     Date | undefined
   >(undefined)
   const [selectedRepeat, setSelectedRepeat] = React.useState('반복 안함')
-  const [selectedId, setSelectedId] = React.useState('')
 
   const repeatOptions = getRepeatOptions(selectedDate)
 
   const { data: projects } = useProjectInfoQuery()
+  const { data: userInfo } = useUserInfoQuery()
 
   const projectOptions =
     projects?.result?.map((project) => ({
@@ -117,7 +120,7 @@ export const ScheduleCreateModal = () => {
       endDate: form.watch('period')?.to?.toISOString(),
       visible: form.watch('visible') as ScheduleVisibility,
       projectId: form.watch('projectId') || null,
-      inviteList: form.watch('inviteList') || [],
+      inviteList: (form.watch('inviteList') as string[]) || [],
     },
     {
       onSuccess: () => {
@@ -162,8 +165,6 @@ export const ScheduleCreateModal = () => {
   }
 
   const onSubmit = () => {
-    // 이제 ParticipateForm에서 팀원 선택하고, 생성 완료시, 팀원 id 추출 후 전달함
-    // 이후 동작은 Calendar에서 필요에 따라 수정
     const invitedList = participates.map((item) => item.id) || []
     form.setValue('inviteList', Array.isArray(invitedList) ? invitedList : [])
     console.log(form.watch('inviteList'))
@@ -238,7 +239,7 @@ export const ScheduleCreateModal = () => {
                   <DropdownForm
                     form={form}
                     options={projectOptions} // 객체 배열로 전달
-                    defaultValue={form.watch('projectId') || ''}
+                    defaultValue={form.watch('projectId') || '프로젝트 팀'}
                     label="프로젝트 팀"
                     name="projectId"
                   />
@@ -272,11 +273,12 @@ export const ScheduleCreateModal = () => {
               )}
             </div>
 
-            {form.watch('type') === '팀 일정' && (
-              <ParticipateForm
+            {form.watch('type') === '팀 일정' && userInfo?.result && (
+              <ScheduleParticipateForm
                 form={form}
                 participates={participates}
                 setParticipates={setParticipates}
+                userInfo={userInfo.result}
               />
             )}
           </div>
@@ -324,6 +326,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
 
   const { data: schedules } = useScheduleDetailQuery(scheduleId)
   const { data: projects } = useProjectInfoQuery()
+  // const userList = useTeamInfoQuery()
 
   const projectOptions =
     projects?.result?.map((project) => ({
@@ -349,7 +352,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
       },
       visible: schedules?.result.visible ?? ScheduleVisibility,
       projectId: schedules?.result.projectId ?? null,
-      inviteList: schedules?.result.inviteList ?? [],
+      inviteList: (schedules?.result.inviteList as string[]) ?? [],
     },
   })
 
@@ -362,7 +365,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
       endDate: form.watch('period').to.toISOString(),
       visible: form.watch('visible') as ScheduleVisibility,
       projectId: form.watch('projectId') || null,
-      inviteList: form.watch('inviteList') || [],
+      inviteList: (form.watch('inviteList') as string[]) || [],
     },
     {
       onSuccess: () => {

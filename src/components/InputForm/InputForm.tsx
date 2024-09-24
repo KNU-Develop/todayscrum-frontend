@@ -64,13 +64,6 @@ interface entry {
   email: string
 }
 
-interface participate {
-  imageUrl: string
-  name: string
-  email: string
-  attend: string
-}
-
 interface formType {
   form: UseFormReturn<z.infer<any>>
 }
@@ -650,8 +643,6 @@ export const DropdownForm = ({
   )
 }
 
-
-
 export const RepeatDayForm = ({ form }: formType) => {
   const days = ['일', '월', '화', '수', '목', '금', '토']
   const [selectedDays, setSelectedDays] = React.useState<string[]>(['일'])
@@ -827,6 +818,149 @@ export const ParticipateForm = ({
   )
 }
 
+export const ScheduleParticipateForm = ({
+  form,
+  participates,
+  setParticipates,
+  userInfo,
+}: participateFormType & { userInfo: TeamInfo }) => {
+  const [searchTerm, setSearchTerm] = React.useState('')
+  const [searchResults, setSearchResults] = React.useState<TeamInfo[]>([])
+
+  const projectId = form.getValues('projectId')
+
+  // enabled 옵션을 사용하여 projectId가 있을 때만 쿼리를 실행
+  const { data: teamData } = useTeamInfoQuery(projectId, {
+    enabled: !!projectId, // projectId가 존재할 때만 쿼리 실행
+  })
+
+  const userList = teamData?.result || []
+
+  React.useEffect(() => {
+    // 프로젝트가 선택되었고, 생성자가 목록에 없다면 추가
+    if (projectId && !participates.some((p) => p.email === userInfo.email)) {
+      setParticipates((prev) => [...prev, userInfo])
+    }
+  }, [userInfo, participates, setParticipates, projectId])
+
+  React.useEffect(() => {
+    if (searchTerm.startsWith('@')) {
+      const filterTerm = searchTerm.slice(1).trim().toLowerCase()
+      const results = userList.filter(
+        (participant) =>
+          (participant.name.toLowerCase().includes(filterTerm) ||
+            participant.email.toLowerCase().includes(filterTerm)) &&
+          !participates.some((item) => item.email === participant.email),
+      )
+      setSearchResults(results)
+    } else if (searchTerm.trim() !== '') {
+      const filterTerm = searchTerm.trim().toLowerCase()
+      const results = userList.filter(
+        (participant) =>
+          participant.email.toLowerCase().includes(filterTerm) &&
+          !participates.some((item) => item.email === participant.email),
+      )
+      setSearchResults(results)
+    } else {
+      setSearchResults([])
+    }
+  }, [searchTerm])
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value)
+  }
+
+  const handleAddParticipant = (participant: TeamInfo) => {
+    const isAdded = participates.some(
+      (item) => item.email === participant.email,
+    )
+    if (!isAdded) {
+      setParticipates((prev) => [...prev, participant])
+      setSearchTerm('')
+      setSearchResults([])
+    }
+  }
+
+  const handleRemoveParticipant = (index: number) => {
+    setParticipates(participates.filter((_, i) => i !== index))
+  }
+
+  const getAttendClass = (attend: string) => {
+    switch (attend) {
+      case '수락':
+        return 'text-blue-500'
+      case '전송':
+        return 'text-slate-500'
+      case '거절':
+        return 'text-red-500'
+      default:
+        return ''
+    }
+  }
+
+  return (
+    <FormField
+      control={form.control}
+      name="inviteList"
+      render={({ field }) => (
+        <FormItem className="flex flex-col items-start gap-[6px] self-stretch">
+          <FormLabel>참가자</FormLabel>
+          <FormControl>
+            <Input
+              placeholder="@이름, 이메일로 추가"
+              value={searchTerm}
+              onChange={handleSearchChange}
+            />
+          </FormControl>
+
+          <div className="webkit-scrollbar-display-none max-h-[150px] w-full overflow-y-auto">
+            {searchResults.length > 0 && (
+              <ul className="z-10 w-[384px] rounded-[8px] border border-slate-100 bg-white px-1 py-1 text-small shadow">
+                {searchResults.map((participant, index) => (
+                  <li
+                    key={index}
+                    value={index.toString()}
+                    className="cursor-pointer p-2 hover:bg-gray-100"
+                    onClick={() => handleAddParticipant(participant)}
+                  >
+                    {participant.name} ({participant.email})
+                  </li>
+                ))}
+              </ul>
+            )}
+            {participates.map((participant, index) => (
+              <div
+                key={index}
+                className="flex h-[36px] items-center gap-2 self-stretch px-[6px] py-[8px] text-detail"
+              >
+                <ProfileAvatar
+                  name={participant.name}
+                  imageUrl={participant.imageUrl}
+                  size="28px"
+                />
+                <p className="flex-[1_0_0] text-small">{participant.name}</p>
+                <p
+                  className={`text-detail ${getAttendClass(participant.attend)}`}
+                >
+                  {participant.attend ? participant.attend : '대기'}
+                </p>
+                {participant.email !== userInfo.email && ( // 생성자가 아닐 경우에만 삭제 아이콘을 표시
+                  <XIcon
+                    className="h-4 w-4 cursor-pointer"
+                    onClick={() => {
+                      handleRemoveParticipant(index)
+                    }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        </FormItem>
+      )}
+    />
+  )
+}
+
 export const EndDateForm = ({
   form,
   disabled,
@@ -939,8 +1073,8 @@ export function DateTimePickerForm({
     return formattedStartTime && formattedEndTime
       ? `${datePart} ${formattedStartTime} ~ ${formattedEndTime}`
       : formattedStartTime || formattedEndTime
-      ? `${datePart} ${formattedStartTime || formattedEndTime}`
-      : datePart
+        ? `${datePart} ${formattedStartTime || formattedEndTime}`
+        : datePart
   }
 
   return (
