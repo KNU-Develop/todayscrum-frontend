@@ -117,7 +117,7 @@ const Page = () => {
           <List schedules={schedule} projects={projects?.result} />
         ) : null}
         {selectedView === 'week' ? (
-          <Weekly date={state.date} schedules={schedule} />
+          <Weekly date={state.date} schedules={schedule} projects={projects?.result} />
         ) : null}
         {selectedView === 'month' ? (
           <Monthly

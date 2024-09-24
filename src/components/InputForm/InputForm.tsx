@@ -108,9 +108,13 @@ interface mbtiFormType {
   setValue: React.Dispatch<React.SetStateAction<string>>
 }
 
+interface DropdownOption {
+  value: string | number
+  label: string
+}
 interface DropdownFormProps {
   form: UseFormReturn<z.infer<any>>
-  options: string[]
+  options: DropdownOption[]
   defaultValue: string
   label: string
   name: string
@@ -616,7 +620,10 @@ export const DropdownForm = ({
           <FormControl>
             <DropdownMenu>
               <DropdownMenuTrigger className="flex items-center gap-1">
-                <p className="text-small">{field.value || defaultValue}</p>
+                <p className="text-small">
+                  {options.find((option) => option.value === field.value)
+                    ?.label || defaultValue}
+                </p>
                 <ChevronDown className="h-4 w-4" />
               </DropdownMenuTrigger>
 
@@ -624,12 +631,11 @@ export const DropdownForm = ({
                 <DropdownMenuLabel>{label}</DropdownMenuLabel>
                 {options.map((item, index) => (
                   <DropdownMenuItem
-                    {...field}
                     key={index}
-                    onClick={() => field.onChange(item)}
+                    onClick={() => form.setValue(name, item.value)} // 선택한 값으로 projectId 설정
                     className="justify-center"
                   >
-                    {item}
+                    {item.label} {/* 프로젝트 이름 표시 */}
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
@@ -640,6 +646,8 @@ export const DropdownForm = ({
     />
   )
 }
+
+
 
 export const RepeatDayForm = ({ form }: formType) => {
   const days = ['일', '월', '화', '수', '목', '금', '토']
@@ -1034,4 +1042,3 @@ export function DateTimePickerForm({
     />
   )
 }
-

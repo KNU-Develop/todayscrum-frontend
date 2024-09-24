@@ -94,7 +94,11 @@ export const ScheduleCreateModal = () => {
 
   const { data: projects } = useProjectInfoQuery()
 
-  const projectOptions = projects?.result?.map((project) => project.title) || []
+  const projectOptions =
+    projects?.result?.map((project) => ({
+      value: project.id, // 프로젝트 id를 value로 설정
+      label: project.title, // 프로젝트 이름을 label로 설정
+    })) || []
 
   const form = useForm({
     resolver: zodResolver(fromSchemaSchedule),
@@ -126,12 +130,20 @@ export const ScheduleCreateModal = () => {
         })
         closeModal('default')
       },
+      onError: (e) => {
+        console.log(e)
+      },
     },
   )
 
   React.useEffect(() => {
-    if (form.watch('type') === '개인 일정') {
+    const scheduleType = form.watch('type')
+
+    if (scheduleType === '개인 일정') {
       form.setValue('projectId', null)
+      form.setValue('visible', 'PRIVATE') // 개인 일정일 때는 PRIVATE로 설정
+    } else if (scheduleType === '팀 일정') {
+      form.setValue('visible', 'PUBLIC') // 팀 일정일 때는 PUBLIC로 설정
     }
   }, [form.watch('type')])
 
@@ -170,7 +182,10 @@ export const ScheduleCreateModal = () => {
               <CalendarIcon className="h-4 w-4" />
               <DropdownForm
                 form={form}
-                options={['개인 일정', '팀 일정']}
+                options={[
+                  { value: '개인 일정', label: '개인 일정' },
+                  { value: '팀 일정', label: '팀 일정' },
+                ]}
                 defaultValue="개인 일정"
                 label="일정 유형"
                 name="type"
@@ -208,7 +223,10 @@ export const ScheduleCreateModal = () => {
                     <LockIcon className="h-4 w-4" />
                     <DropdownForm
                       form={form}
-                      options={['PRIVATE', 'PUBLIC']}
+                      options={[
+                        { value: 'PRIVATE', label: '비공개' },
+                        { value: 'PUBLIC', label: '공개' },
+                      ]}
                       defaultValue="PRIVATE"
                       label="공개 여부"
                       name="visible"
@@ -217,8 +235,8 @@ export const ScheduleCreateModal = () => {
                 ) : (
                   <DropdownForm
                     form={form}
-                    options={projectOptions}
-                    defaultValue="프로젝트 팀"
+                    options={projectOptions} // 객체 배열로 전달
+                    defaultValue={form.watch('projectId') || ''}
                     label="프로젝트 팀"
                     name="projectId"
                   />
@@ -305,7 +323,11 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
   const { data: schedules } = useScheduleDetailQuery(scheduleId)
   const { data: projects } = useProjectInfoQuery()
 
-  const projectOptions = projects?.result?.map((project) => project.title) || []
+  const projectOptions =
+    projects?.result?.map((project) => ({
+      value: project.id, // id를 value로 설정
+      label: project.title, // title을 label로 설정
+    })) || []
 
   const getProjectTitle = (projectId: string) => {
     return (
@@ -323,7 +345,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
         from: new Date(schedules?.result.startDate ?? ''),
         to: new Date(schedules?.result.endDate ?? ''),
       },
-      visible: schedules?.result.visible ?? '',
+      visible: schedules?.result.visible ?? ScheduleVisibility,
       projectId: schedules?.result.projectId ?? null,
       inviteList: schedules?.result.inviteList ?? [],
     },
@@ -342,9 +364,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
     },
     {
       onSuccess: () => {
-        queryClient.invalidateQueries({
-          queryKey: ['schedules'],
-        })
+        queryClient.invalidateQueries({ queryKey: ['schedules'] })
         closeModal('dimed')
         closeModal('default')
       },
@@ -355,8 +375,11 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
   )
 
   React.useEffect(() => {
-    if (form.watch('type') === '개인 일정') {
+    const scheduleType = form.watch('type')
+    if (scheduleType === '개인 일정') {
       form.setValue('projectId', null)
+    } else {
+      form.setValue('projectId', form.getValues('projectId') ?? null)
     }
   }, [form.watch('type')])
 
@@ -377,7 +400,10 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
               <CalendarIcon className="h-4 w-4" />
               <DropdownForm
                 form={form}
-                options={['개인 일정', '팀 일정']}
+                options={[
+                  { value: '개인 일정', label: '개인 일정' },
+                  { value: '팀 일정', label: '팀 일정' },
+                ]}
                 defaultValue="개인 일정"
                 label="일정 유형"
                 name="type"
@@ -413,7 +439,10 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
                     <LockIcon className="h-4 w-4" />
                     <DropdownForm
                       form={form}
-                      options={['내용 비공개', '내용 공개']}
+                      options={[
+                        { value: 'PRIVATE', label: '비공개' },
+                        { value: 'PUBLIC', label: '공개' },
+                      ]}
                       defaultValue="내용 비공개"
                       label="공개 여부"
                       name="visible"
@@ -424,7 +453,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
                     form={form}
                     options={projectOptions}
                     defaultValue={getProjectTitle(
-                      schedules?.result.projectId ?? '',
+                      schedules?.result.projectId ?? '프로젝트 팀',
                     )}
                     label="프로젝트 팀"
                     name="projectId"
