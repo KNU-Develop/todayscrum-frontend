@@ -1,21 +1,31 @@
 'use client'
 
-import { useUserInfoQuery } from '@/api'
+import { useTeamInfoQuery, useUserInfoQuery } from '@/api'
 import { BoardDto, BoardResponse } from '@/api/services/board/model'
 import { useBoardQuery } from '@/api/services/board/quries'
-import { Comment, CommentResponse } from '@/api/services/comment/model'
+import {
+  Comment,
+  CommentResponse,
+  InputComment,
+} from '@/api/services/comment/model'
 import {
   useAddCommentMutation,
   useCommentListQuery,
   useDeleteCommentMutation,
   useUpdateCommentMutation,
 } from '@/api/services/comment/quries'
+import { ProjectUserInfo } from '@/api/services/project/model'
+import { useOneProjectInfoQuery } from '@/api/services/project/quries'
 import { ProfileAvatar } from '@/components/Avatar/Avatar'
+import { Form } from '@/components/ui/form'
+import { fromCreateComment } from '@/hooks/useVaild/useComment'
+import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { da, ko } from 'date-fns/locale'
 import { useParams, usePathname } from 'next/navigation'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
 
 interface CommentContainerProps {
@@ -28,11 +38,19 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
   onEdit,
   onDelete,
 }) => {
+  const pathName = usePathname()
+  const projectId = pathName.split('/project/')[1]?.split('/')[0]
+
+  const [filteredUsers, setFilteredUsers] = useState<ProjectUserInfo[]>([])
+  const [master, setMaster] = useState<ProjectUserInfo[]>([])
+
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState('')
   const queryClient = useQueryClient()
 
   const user = useUserInfoQuery()
+  const project = useOneProjectInfoQuery(projectId).data
+  const team = project?.result?.users
 
   const handleEditClick = () => {
     setIsEditing(true)
@@ -117,11 +135,25 @@ const PostContainer: React.FC<{
   board: BoardDto
   comments: Comment[] | []
 }> = ({ board, comments }) => {
-  const [comment, setComment] = useState<string>('')
+  const pathName = usePathname()
+  const projectId = pathName.split('/project/')[1]?.split('/')[0]
+
+  const [filteredUsers, setFilteredUsers] = useState<ProjectUserInfo[]>([])
+  const [master, setMaster] = useState<ProjectUserInfo[]>([])
+
+  const form = useForm<InputComment>({
+    resolver: zodResolver(fromCreateComment),
+    mode: 'onChange',
+    defaultValues: {
+      description: '',
+      masterId: [],
+    },
+  })
   const queryClient = useQueryClient()
-
   const user = useUserInfoQuery()
-
+  const project = useOneProjectInfoQuery(projectId).data
+  const team = project?.result?.users
+  const description = form.watch('description')
   const addComment = useAddCommentMutation(board?.id, {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board'] })
@@ -147,15 +179,44 @@ const PostContainer: React.FC<{
 
   const handleEdit = (newComment: string) => {}
 
-  const handleCommentChange = (
-    event: React.ChangeEvent<HTMLTextAreaElement>,
-  ) => {
-    setComment(event.target.value)
+  const handleCommentSubmit = () => {
+    const masterId = master.map((item) => parseInt(item.id, 10)) || []
+    form.setValue('masterId', masterId)
+
+    addComment.mutate({
+      description: form.getValues('description'),
+      masterId: form.getValues('masterId'),
+    })
+    form.reset()
+    setMaster([])
   }
 
-  const handleCommentSubmit = () => {
-    addComment.mutate({ description: comment })
-    setComment('')
+  useEffect(() => {
+    if (description.includes('@')) {
+      const filterTerm =
+        description.split('@').pop()?.trim().toLowerCase() || ''
+
+      const results = team?.filter(
+        (participant) =>
+          (participant.name.toLowerCase().includes(filterTerm) ||
+            participant.email.toLowerCase().includes(filterTerm)) &&
+          !master.some((item) => item.email === participant.email),
+      )
+      setFilteredUsers(results || [])
+    } else {
+      setFilteredUsers([])
+    }
+  }, [description, master, team])
+
+  const handleUserSelect = (user: ProjectUserInfo) => {
+    const updatedDescription = description.replace(/@\w*$/, `@${user.name} `)
+    form.setValue('description', updatedDescription)
+
+    const isAdded = master.some((item) => item.email === user.email)
+    if (!isAdded) {
+      setMaster([...master, user])
+    }
+    setFilteredUsers([])
   }
 
   return (
@@ -194,8 +255,9 @@ const PostContainer: React.FC<{
             <div className="flex">{board?.content}</div>
           </div>
           <div className="flex h-[65vh] flex-col justify-between">
-            {comments?.map((comment) => (
+            {comments?.map((comment, index) => (
               <CommentContainer
+                key={index}
                 comment={comment}
                 onEdit={handleEdit}
                 onDelete={handleDelete}
@@ -205,20 +267,37 @@ const PostContainer: React.FC<{
               <div className="font-inter mt-3 text-xl font-medium leading-4 text-black">
                 댓글
               </div>
-              <textarea
-                value={comment}
-                onChange={handleCommentChange}
-                className="h-[80px] w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="댓글을 적어 주세요."
-              />
-              <div className="flex flex-row justify-end">
-                <button
-                  onClick={handleCommentSubmit}
-                  className="w-[89px] rounded border px-[16px] py-[8px] font-pretendard text-sm font-normal leading-6 text-slate-900"
-                >
-                  등록
-                </button>
-              </div>
+              <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleCommentSubmit)}>
+                  <textarea
+                    {...form.register('description')}
+                    className="h-[80px] w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="댓글을 적어 주세요."
+                  />
+                  {filteredUsers.length > 0 && (
+                    <div className="rounded border bg-white shadow-md">
+                      {filteredUsers.map((user) => (
+                        <div
+                          key={user.id}
+                          onClick={() => handleUserSelect(user)}
+                          className="cursor-pointer px-2 py-1 hover:bg-gray-200"
+                        >
+                          {user.name} ({user.email})
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div className="mt-2 flex flex-row justify-end">
+                    <button
+                      type="submit"
+                      className="w-[89px] rounded border px-[16px] py-[8px] font-pretendard text-sm font-normal leading-6 text-slate-900"
+                    >
+                      등록
+                    </button>
+                  </div>
+                </form>
+              </Form>
             </div>
           </div>
         </>

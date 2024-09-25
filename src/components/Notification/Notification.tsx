@@ -22,10 +22,10 @@ const RedBell: React.FC<{ size: number }> = ({ size }) => {
   return (
     <div>
       <Bell size={size} />
-      <div className="absolute right-2 top-1">
-        <span className="relative flex h-3 w-3">
+      <div className="absolute right-2 top-[5px]">
+        <span className="relative flex h-[10px] w-[10px]">
           <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
+          <span className="relative inline-flex h-[10px] w-[10px] rounded-full bg-red-500"></span>
         </span>
       </div>
     </div>
@@ -478,7 +478,7 @@ const NotificationDropdown: React.FC = () => {
               <li
                 key={notice.id}
                 onClick={() => handleNotificationClick(notice)}
-                className="gap-[4px] p-[12px] font-sans text-sm font-normal leading-5 text-slate-500"
+                className="cursor-pointer gap-[4px] p-[12px] font-sans text-sm font-normal leading-5 text-slate-500"
               >
                 <div className="flex items-center gap-[10px] font-sans text-sm font-medium leading-none text-black">
                   {!notice.read && (
