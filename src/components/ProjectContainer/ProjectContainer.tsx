@@ -263,7 +263,17 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
             <div className="mt-12 flex justify-center space-x-4">
               <button
                 type="button"
-                onClick={onClose}
+                onClick={() => {
+                  setMasters([])
+                  form.reset({
+                    title: '',
+                    progress: BoardProgress.problem,
+                    category: BoardCategory.issue,
+                    content: '',
+                    mastersId: [] as number[],
+                  })
+                  onClose()
+                }}
                 className="w-[186px] rounded bg-[#DBEAFE] px-4 py-2 text-[#3B82F6]"
               >
                 취소
@@ -1314,7 +1324,7 @@ const ProjectContainer = ({ data }: { data: ProjectInfo }) => {
             height="24"
             viewBox="0 0 24 24"
             fill="none"
-            className="self-center"
+            className="cursor-pointer self-center"
             onClick={handleClick}
           >
             <path

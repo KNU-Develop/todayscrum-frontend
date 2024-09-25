@@ -5,7 +5,6 @@ import {
   useNotificationPost,
 } from '@/api/services/notification/quries'
 import React, { useState, useEffect, useRef } from 'react'
-
 import { ProjectInviteStatus } from '@/api'
 import {
   Notification,
@@ -21,9 +20,14 @@ import { useRouter } from 'next/navigation'
 
 const RedBell: React.FC<{ size: number }> = ({ size }) => {
   return (
-    <div className="relative">
+    <div>
       <Bell size={size} />
-      <div className="absolute bottom-1 right-0 h-2.5 w-2.5 rounded-full bg-red-500"></div>
+      <div className="absolute right-2 top-1">
+        <span className="relative flex h-3 w-3">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex h-3 w-3 rounded-full bg-red-500"></span>
+        </span>
+      </div>
     </div>
   )
 }
@@ -430,6 +434,7 @@ const NotificationDropdown: React.FC = () => {
       router.push(
         `/project/${notification.originTable}/post/${notification.originId}`,
       )
+      setIsOpen(false)
     }
   }
 
