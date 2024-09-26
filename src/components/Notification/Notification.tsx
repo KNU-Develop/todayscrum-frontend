@@ -473,7 +473,7 @@ const NotificationDropdown: React.FC = () => {
             <Bell size={20} />
             <ListCheck size={20} />
           </div>
-          <ul className="space-y-2 p-4">
+          <ul className="scrollbar-hide max-h-[40vh] space-y-2 overflow-y-auto p-4">
             {notificationList.map((notice) => (
               <li
                 key={notice.id}

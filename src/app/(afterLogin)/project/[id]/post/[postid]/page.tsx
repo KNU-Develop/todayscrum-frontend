@@ -43,7 +43,6 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
 
   const [filteredUsers, setFilteredUsers] = useState<ProjectUserInfo[]>([])
   const [master, setMaster] = useState<ProjectUserInfo[]>([])
-
   const [isEditing, setIsEditing] = useState(false)
   const [editedContent, setEditedContent] = useState('')
   const queryClient = useQueryClient()
@@ -65,14 +64,44 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
     },
   })
 
+  useEffect(() => {
+    if (editedContent.includes('@')) {
+      const filterTerm =
+        editedContent.split('@').pop()?.trim().toLowerCase() || ''
+
+      const results = team?.filter(
+        (participant) =>
+          (participant.name.toLowerCase().includes(filterTerm) ||
+            participant.email.toLowerCase().includes(filterTerm)) &&
+          !master.some((item) => item.email === participant.email),
+      )
+      setFilteredUsers(results || [])
+    } else {
+      setFilteredUsers([])
+    }
+  }, [editedContent, master, team])
+
   const handleSaveClick = () => {
     onEdit(editedContent)
-    updateComment.mutate({ description: editedContent })
+    const masterId = master.map((item) => parseInt(item.id, 10)) || []
+
+    updateComment.mutate({ description: editedContent, masterId: masterId })
     setIsEditing(false)
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditedContent(e.target.value)
+  }
+
+  const handleUserSelect = (user: ProjectUserInfo) => {
+    const updatedDescription = editedContent.replace(/@\w*$/, `@${user.name} `)
+    setEditedContent(updatedDescription)
+
+    const isAdded = master.some((item) => item.email === user.email)
+    if (!isAdded) {
+      setMaster([...master, user])
+    }
+    setFilteredUsers([])
   }
 
   return (
@@ -119,11 +148,26 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
       <div>
         <hr className="border-t border-gray-300" />
         {isEditing ? (
-          <textarea
-            value={editedContent}
-            onChange={handleChange}
-            className="w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+          <div>
+            <textarea
+              value={editedContent}
+              onChange={handleChange}
+              className="w-full rounded border px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            {filteredUsers.length > 0 && (
+              <div className="rounded border bg-white shadow-md">
+                {filteredUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    onClick={() => handleUserSelect(user)}
+                    className="cursor-pointer px-2 py-1 hover:bg-gray-200"
+                  >
+                    {user.name} ({user.email})
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         ) : (
           <div className="flex px-2 py-3">{comment.description}</div>
         )}
