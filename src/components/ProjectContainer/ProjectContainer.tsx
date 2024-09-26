@@ -170,6 +170,7 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
       content: '',
       mastersId: [] as number[],
     })
+    setMasters([])
     onClose()
   }
 
