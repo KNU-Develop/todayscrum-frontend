@@ -50,11 +50,11 @@ export const Weekly: React.FC<WeeklyProps> = ({
 
   const events: ScheduleInfo[] = schedules || []
 
-  // 하루 종일 이벤트 필터링
+  // 하루 종일 이벤트 필터링 (startDate와 endDate가 날짜와 시간 모두 동일한 경우)
   const allDayEvents = events.filter((event) => {
     const start = new Date(event.startDate)
     const end = event.endDate ? new Date(event.endDate) : start
-    return isSameDay(start, end) || event.endDate === null
+    return start.getTime() === end.getTime() // 날짜와 시간까지 동일할 때
   })
 
   const getColor = (schedule: ScheduleInfo) => {

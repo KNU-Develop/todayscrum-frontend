@@ -1,5 +1,5 @@
 import { ScheduleInfo, useProjectInfoQuery, useUserInfoQuery } from '@/api'
-import { addDays, getHours, getMinutes, isSameDay } from 'date-fns'
+import { addDays, getHours, getMinutes, isEqual, isSameDay } from 'date-fns'
 import * as React from 'react'
 import { getBorderColor } from './style'
 
@@ -42,22 +42,16 @@ export const EventRenderer: React.FC<EventRendererProps> = ({
     }
   }
 
+  // 하루 종일 일정은 시간 섹션에서 제외
   const dayEvents = events.filter((event) => {
     const eventStart = new Date(event.startDate)
-    const eventEnd = event.endDate ? new Date(event.endDate) : eventStart
-    const isAllDayEvent = !event.endDate || isSameDay(eventStart, eventEnd)
+    const eventEnd = new Date(event.endDate ?? event.startDate)
 
-    // 하루 종일 일정은 시간별 섹션에서 제외
-    if (isAllDayEvent) return false
+    const isAllDayEvent = isEqual(eventStart, eventEnd) // startDate와 endDate가 시간까지 동일하면 하루 종일 일정으로 간주
+    const isEventInDay = isSameDay(addDays(weekStart, dayIndex), eventStart)
 
-    const eventDay = isSameDay(addDays(weekStart, dayIndex), eventStart)
-
-    // 시간이 있는 이벤트만 시간대별로 출력
-    return (
-      eventDay &&
-      (getHours(eventStart) === hour ||
-        (getHours(eventStart) <= hour && getHours(eventEnd) > hour))
-    )
+    // 하루 종일 일정은 필터링해서 제외
+    return isEventInDay && !isAllDayEvent && getHours(eventStart) === hour
   })
 
   dayEvents.sort(
@@ -91,15 +85,7 @@ export const EventRenderer: React.FC<EventRendererProps> = ({
             )}`}
             style={{
               top: `${(getMinutes(new Date(event.startDate)) / 60) * 48}px`,
-              height: `${
-                (((getHours(new Date(event.endDate ?? event.startDate)) -
-                  getHours(new Date(event.startDate))) *
-                  60 +
-                  (getMinutes(new Date(event.endDate ?? event.startDate)) -
-                    getMinutes(new Date(event.startDate)))) /
-                  60) *
-                48
-              }px`,
+              height: `${(((getHours(new Date(event.endDate ?? event.startDate)) - getHours(new Date(event.startDate))) * 60 + (getMinutes(new Date(event.endDate ?? event.startDate)) - getMinutes(new Date(event.startDate)))) / 60) * 48}px`,
               left: `${leftOffset}px`,
               width: `${width}px`,
             }}
