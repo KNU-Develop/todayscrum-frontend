@@ -22,7 +22,7 @@ export interface ScheduleInfo {
   startDate: string
   endDate: string
   visible: ScheduleVisibility
-  projectId: string 
+  projectId: string
   inviteList: string[]
 }
 
@@ -81,8 +81,8 @@ export interface DeleteScheduleResponse {
 }
 
 export interface Invite {
-  id: string,
-  name: string,
+  id: string
+  name: string
   email: string
   state: InviteStatus
 }

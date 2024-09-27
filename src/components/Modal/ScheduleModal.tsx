@@ -273,7 +273,7 @@ export const ScheduleCreateModal = () => {
               )}
             </div>
 
-            {form.watch('type') === '팀 일정' && userInfo?.result && (
+            {form.watch('type') === '팀 일정' && (
               <ScheduleParticipateForm
                 form={form}
                 participates={participates}
@@ -387,6 +387,18 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
     }
   }, [form.watch('type')])
 
+  const handleAllDayChange = (checked: boolean) => {
+    setAllDay(checked)
+    if (checked) {
+      // allDay가 체크된 경우 endDate를 startDate와 동일하게 설정
+      form.setValue('period', {
+        from: form.watch('period').from,
+        to: form.watch('period').from, // startDate와 동일하게 설정
+      })
+      setSelectedEndDate(form.watch('period').from)
+    }
+  }
+
   const onSubmit = () => {
     editScheduleInfo.mutate()
   }
@@ -432,7 +444,9 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
                   <Checkbox
                     id="allday"
                     checked={allDay}
-                    onCheckedChange={() => setAllDay(!allDay)}
+                    onCheckedChange={(checked: boolean) =>
+                      handleAllDayChange(checked)
+                    }
                   />
                   <Label htmlFor="allday" className="text-small">
                     하루 종일
@@ -493,7 +507,7 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
             </div>
 
             {form.watch('type') === '팀 일정' && (
-              <ParticipateForm
+              <ScheduleParticipateForm
                 form={form}
                 participates={participates}
                 setParticipates={setParticipates}
@@ -507,14 +521,15 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
             <Button
               type="button"
               title="취소"
+              variant="secondary"
               onClick={() => closeModal('dimed')}
-              className="flex flex-1 gap-[10px] bg-blue-100"
+              className="flex-1"
             >
-              <p className="text-body text-blue-500">취소</p>
+              <p className="text-body">취소</p>
             </Button>
             <Button
               title="수정"
-              className="flex flex-1 gap-[10px]"
+              className="flex-1"
               disabled={!form.formState.isValid}
               variant={form.formState.isValid ? 'default' : 'disabled'}
             >
@@ -609,7 +624,6 @@ export const ScheduleCheckModal = ({ scheduleId }: { scheduleId: string }) => {
   const visible = form.watch('visible')
   const repeat = form.watch('repeat')
   const participate = form.watch('inviteList')
-
 
   const onSubmit = () => {
     closeModal('default')
