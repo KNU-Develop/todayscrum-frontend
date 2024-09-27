@@ -4,7 +4,7 @@ import { APIBuilder } from '@/api/lib/fetcher'
 
 export const meetingService = {
   async recommedMeetingTimes(client: QueryClient, dto: RecommedMeetingDto) {
-    return APIBuilder.post('/recommed/three-days')
+    return APIBuilder.post('/recommend/three-days')
       .withCredentials(client)
       .build()
       .call<RecommedMeetingResponse>({ body: JSON.stringify(dto) })

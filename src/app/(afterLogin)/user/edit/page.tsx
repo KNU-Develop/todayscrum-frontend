@@ -130,7 +130,7 @@ const profileEdit: React.FC = () => {
             <DefaultInputForm
               form={form}
               name="stacks"
-              label="기술스택(쉼포로 구분)"
+              label="기술스택(쉼표로 구분)"
               placeholder="기술스택"
             />
             <MBITInfoForm form={form} value={value} setValue={setValue} />
