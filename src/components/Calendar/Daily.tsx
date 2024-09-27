@@ -1,7 +1,6 @@
 'use client'
 import * as React from 'react'
-import { format } from 'date-fns'
-import { ScheduleInfo, useProjectInfoQuery, useScheduleListQuery } from '@/api'
+import { ProjectInfo, ScheduleInfo } from '@/api'
 import { hours } from '@/hooks/useCalendar/useCalendarUtils'
 import { EventRenderer } from './EventRenderer'
 import { useModal } from '@/hooks/useModal'
@@ -17,7 +16,7 @@ const TimeSlot: React.FC<{ children?: React.ReactNode }> = ({ children }) => (
 interface DailyProps {
   date: Date
   schedules: ScheduleInfo[] | undefined
-  projects: { uid: string; title: string }[] | undefined
+  projects: ProjectInfo[] | undefined
 }
 
 export const Daily: React.FC<DailyProps> = ({ date, schedules, projects }) => {
@@ -69,7 +68,7 @@ export const Daily: React.FC<DailyProps> = ({ date, schedules, projects }) => {
         {projects?.map((project) => (
           <p
             className="flex-1 gap-[10px] text-center text-large"
-            key={project.uid}
+            key={project.id}
           >
             {project.title}
           </p>
@@ -80,9 +79,6 @@ export const Daily: React.FC<DailyProps> = ({ date, schedules, projects }) => {
         <div className="flex items-center self-stretch border-b border-gray-300">
           <div className="flex items-center justify-center gap-[10px] p-[10px]">
             <p className="text-subtle">하루종일</p>
-            {filterAllDaySchedules(schedules || []).map((schedule) => (
-              <TimeSlot key={schedule.id}>{renderEvents(null, 10)}</TimeSlot>
-            ))}
           </div>
         </div>
 
@@ -97,8 +93,8 @@ export const Daily: React.FC<DailyProps> = ({ date, schedules, projects }) => {
             </div>
             <TimeSlot key="personal">{renderEvents(null, index)}</TimeSlot>
             {projects?.map((project) => (
-              <TimeSlot key={project.uid}>
-                {renderEvents(project.uid, index)}
+              <TimeSlot key={project.id}>
+                {renderEvents(project.id, index)}
               </TimeSlot>
             ))}
           </div>

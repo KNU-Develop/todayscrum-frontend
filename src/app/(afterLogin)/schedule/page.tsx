@@ -107,10 +107,7 @@ const Page = () => {
           <Daily
             date={state.date}
             schedules={schedule}
-            projects={projects?.result?.map((project) => ({
-              uid: project.id,
-              title: project.title,
-            }))}
+            projects={projects?.result}
           />
         ) : null}
         {selectedView === 'list' ? (

@@ -38,7 +38,7 @@ export const Weekly: React.FC<WeeklyProps> = ({
     }
   })
 
-  const { data: userInfo } = useUserInfoQuery() // 사용자 정보 가져오기
+  const { data: userInfo } = useUserInfoQuery() 
 
   const [selectedSchedule, setSelectedSchedule] =
     React.useState<ScheduleInfo | null>(null)
