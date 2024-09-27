@@ -27,6 +27,7 @@ export const {
   projectInfo,
   oneProjectInfo,
   teamInfo,
+  editProjectColor,
 } = {
   projectInfo: (client: QueryClient) => ({
     queryKey: ['projectList'],
@@ -55,6 +56,10 @@ export const {
   deleteTeamInfo: (client: QueryClient, uid: string) => ({
     mutationFn: (dto: DeleteTeamDto) =>
       projectService.deleteTeamInfo(client, uid, dto),
+  }),
+  editProjectColor: (client: QueryClient) => ({
+    mutationFn: ({ dto, uid }: { dto: EditProjectDTO; uid: string }) =>
+      projectService.editProjectColor(client, dto, uid),
   }),
 }
 
@@ -150,6 +155,21 @@ export const useDeleteTeamInfo = (
 
   return useMutation({
     ...deleteTeamInfo(queryClient, uid),
+    ...options,
+  })
+}
+
+export const useEditProjectColor = (
+  options: MutationOptions<
+    DefaultResponse,
+    Error,
+    { dto: EditProjectDTO; uid: string }
+  > = {},
+) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    ...editProjectColor(queryClient), // uid를 전달하지 않음
     ...options,
   })
 }

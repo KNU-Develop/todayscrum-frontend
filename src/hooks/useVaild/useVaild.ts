@@ -60,9 +60,18 @@ const endDate = z.date().optional()
 
 const visible = z.string().optional()
 
-const projectId = z.string().optional()
+const projectId = z.string().nullable()
 
-const inviteList = z.array(z.string()).optional()
+const inviteList = z
+  .array(
+    z.object({
+      email: z.string().email(),
+      id: z.number(),
+      name: z.string(),
+      state: z.string(),
+    }),
+  )
+  .optional()
 
 export const formSchemaUserEdit = z.object({
   name: nameField,
@@ -105,8 +114,7 @@ export const fromSchemaSchedule = z.object({
   type: type,
   title: title,
   content: description,
-  startDate: startDate,
-  endDate: endDate,
+  period: period,
   visible: visible,
   projectId: projectId,
   inviteList: inviteList,

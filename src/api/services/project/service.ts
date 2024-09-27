@@ -67,4 +67,10 @@ export const projectService = {
       .build()
       .call<DefaultResponse>({ body: JSON.stringify(dto) })
   },
+  async editProjectColor(client: QueryClient, dto: EditProjectDTO, uid: string) {
+    return APIBuilder.put(`/project/${uid}`)
+      .withCredentials(client)
+      .build()
+      .call<DefaultResponse>({ body: JSON.stringify(dto) })
+  },
 }

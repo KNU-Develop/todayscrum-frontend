@@ -1,9 +1,10 @@
 import { QueryClient } from '@tanstack/react-query'
 
-import { APIBuilder } from '../../lib/fetcher'
+import { API, APIBuilder } from '../../lib/fetcher'
 
 import {
   DefaultResponse,
+  EditUserColorDTO,
   EditUserInfoDTO,
   UserInfoResponse,
   UserOptionalInfoDTO,
@@ -31,6 +32,12 @@ export const userService = {
   },
   async userEdit(client: QueryClient, dto: EditUserInfoDTO) {
     return APIBuilder.put('/user/info/optional')
+      .withCredentials(client)
+      .build()
+      .call<DefaultResponse>({ body: JSON.stringify(dto) })
+  },
+  async userEditColor(client: QueryClient, dto: EditUserColorDTO) {
+    return APIBuilder.put('/user/color')
       .withCredentials(client)
       .build()
       .call<DefaultResponse>({ body: JSON.stringify(dto) })

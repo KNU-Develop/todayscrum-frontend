@@ -44,9 +44,10 @@ export function GradientPicker({
     'bg-blue-100', // '#DBEAFE'
     'bg-purple-100', // '#F3E8FF'
   ]
+  const [isOpen, setIsOpen] = useState(false)
 
   return (
-    <Popover>
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
         <Button
           variant={'outline'}
@@ -59,7 +60,10 @@ export function GradientPicker({
             <div
               key={s}
               className={`h-6 w-6 cursor-pointer rounded-md ${s} active:scale-105`}
-              onClick={() => setBackground(s)}
+              onClick={() => {
+                setBackground(s)
+                setIsOpen(false)
+              }}
             />
           ))}
         </div>

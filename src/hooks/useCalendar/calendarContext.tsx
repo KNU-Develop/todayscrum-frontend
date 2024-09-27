@@ -59,6 +59,7 @@ const CalendarProvider: React.FC<CalendarProviderProps> = ({ children }) => {
     <CalendarContext.Provider
       value={{
         date,
+        setDate,
         handlePrev,
         handleNext,
         handleToday,

@@ -94,11 +94,7 @@ export const formatDateTime = (startDate: string, endDate?: string): string => {
   const endDateFormatted = end ? formatTime(end) : ''
 
   if (!end || startDate === endDate) {
-    const formattedStartTime =
-      start.getHours() === 0 && start.getMinutes() === 0
-        ? ''
-        : formatTime(start)
-    return `${format(start, 'yyyy. MM. dd')}(${getDayOfWeek(start)}) ${formattedStartTime}`
+    return `${format(start, 'yyyy. MM. dd')}(${getDayOfWeek(start)}) `
   }
 
   return `${startDateFormatted} ~ ${endDateFormatted}`

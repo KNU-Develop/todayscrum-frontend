@@ -31,7 +31,9 @@ export const ProfileAvatar = ({ imageUrl, name, size }: AvatarProps) => {
       {imageUrl ? (
         <AvatarImage src={imageUrl} alt="Avatar Image" />
       ) : (
-        <AvatarFallback>{getInitials(name)}</AvatarFallback>
+        <AvatarFallback className="bg-white">
+          {getInitials(name)}
+        </AvatarFallback>
       )}
     </Avatar>
   )
