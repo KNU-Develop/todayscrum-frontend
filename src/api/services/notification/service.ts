@@ -11,7 +11,7 @@ export const NotificationService = {
   },
   async notificationPost(
     client: QueryClient,
-    uid: string,
+    uid: number,
     dto: InputNotification,
   ) {
     return APIBuilder.post(`/notice/${uid}`)

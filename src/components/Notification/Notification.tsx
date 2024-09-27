@@ -5,7 +5,6 @@ import {
   useNotificationPost,
 } from '@/api/services/notification/quries'
 import React, { useState, useEffect, useRef } from 'react'
-
 import { ProjectInviteStatus } from '@/api'
 import {
   Notification,
@@ -16,8 +15,22 @@ import { useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { ko } from 'date-fns/locale'
 import { Bell } from 'lucide-react'
-import { BellDot } from 'lucide-react'
 import { ListCheck } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+
+const RedBell: React.FC<{ size: number }> = ({ size }) => {
+  return (
+    <div>
+      <Bell size={size} />
+      <div className="absolute right-2 top-[5px]">
+        <span className="relative flex h-[10px] w-[10px]">
+          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-red-400 opacity-75"></span>
+          <span className="relative inline-flex h-[10px] w-[10px] rounded-full bg-red-500"></span>
+        </span>
+      </div>
+    </div>
+  )
+}
 
 const ProjectInviteModal: React.FC<{
   onClose: () => void
@@ -27,7 +40,7 @@ const ProjectInviteModal: React.FC<{
   const projectResponse = useOneProjectInfoQuery(notification.originId)
   const project = projectResponse.data?.result || null
 
-  const notificationPost = useNotificationPost(notification.id.toString(), {
+  const notificationPost = useNotificationPost({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['notificationList'] })
       queryClient.invalidateQueries({ queryKey: ['projectList'] })
@@ -36,6 +49,7 @@ const ProjectInviteModal: React.FC<{
 
   const clickHandler = (select: boolean) => {
     notificationPost.mutate({
+      id: notification.id,
       read: true,
       choice: select ? ProjectInviteStatus.Acceped : ProjectInviteStatus.Denied,
     })
@@ -373,6 +387,9 @@ const MeetingReminderModal: React.FC<{ onClose: () => void }> = ({
 }
 
 const NotificationDropdown: React.FC = () => {
+  const queryClient = useQueryClient()
+  const router = useRouter()
+
   const [isOpen, setIsOpen] = useState(false)
   const [showProjectInviteModal, setProjectInviteShowModal] = useState(false)
   const [showMeetingReminderModal, setMeetingReminderShowModal] =
@@ -387,10 +404,17 @@ const NotificationDropdown: React.FC = () => {
   }
 
   const notificationResponse = useNotificationListQuery()
+  const post = useNotificationPost({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['notificationList'] })
+      queryClient.invalidateQueries({ queryKey: ['projectList'] })
+    },
+  })
   const notificationList = notificationResponse.data?.result || []
   const readNotNotification = notificationList.some(
     (notification) => !notification.read,
   )
+
   const handleNotificationClick = (notification: Notification) => {
     if (notification.type === NotificationType.ProjectInvite) {
       setNotification(notification)
@@ -400,6 +424,17 @@ const NotificationDropdown: React.FC = () => {
     if (notification.type === NotificationType.MeetingReminder) {
       setNotification(notification)
       setMeetingReminderShowModal(true)
+    }
+    if (notification.type === NotificationType.Mention) {
+      setNotification(notification)
+      post.mutate({
+        id: notification.id,
+        read: true,
+      })
+      router.push(
+        `/project/${notification.originTable}/post/${notification.originId}`,
+      )
+      setIsOpen(false)
     }
   }
 
@@ -425,7 +460,7 @@ const NotificationDropdown: React.FC = () => {
         onClick={toggleDropdown}
         ref={buttonRef}
       >
-        {!readNotNotification ? <Bell size={25} /> : <BellDot size={25} />}
+        {!readNotNotification ? <Bell size={25} /> : <RedBell size={25} />}
       </button>
 
       {isOpen && (
@@ -438,12 +473,12 @@ const NotificationDropdown: React.FC = () => {
             <Bell size={20} />
             <ListCheck size={20} />
           </div>
-          <ul className="space-y-2 p-4">
+          <ul className="scrollbar-hide max-h-[40vh] space-y-2 overflow-y-auto p-4">
             {notificationList.map((notice) => (
               <li
                 key={notice.id}
                 onClick={() => handleNotificationClick(notice)}
-                className="gap-[4px] p-[12px] font-sans text-sm font-normal leading-5 text-slate-500"
+                className="cursor-pointer gap-[4px] p-[12px] font-sans text-sm font-normal leading-5 text-slate-500"
               >
                 <div className="flex items-center gap-[10px] font-sans text-sm font-medium leading-none text-black">
                   {!notice.read && (

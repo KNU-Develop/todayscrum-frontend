@@ -8,7 +8,7 @@ export interface Member {
 }
 export enum NotificationType {
   Comment = 'COMMENT', // 댓글 알림
-  Mention = 'MENTION', // 게시글 언급 알림
+  Mention = '멘션', // 게시글 언급 알림
   EventInvite = 'EVENT_INVITE', // 일정 초대 알림
   ProjectInvite = '초대', // 프로젝트 초대 알림
   ProjectExit = 'PROJECT_EXIT', // 프로젝트 탈퇴 알림
@@ -30,6 +30,7 @@ export interface NotificationResponse<T> {
   result: T | []
 }
 export interface InputNotification {
+  id?: number
   read: boolean
-  choice: ProjectInviteStatus
+  choice?: ProjectInviteStatus
 }
