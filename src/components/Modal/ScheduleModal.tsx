@@ -278,7 +278,6 @@ export const ScheduleCreateModal = () => {
                 form={form}
                 participates={participates}
                 setParticipates={setParticipates}
-                userInfo={userInfo.result}
               />
             )}
           </div>

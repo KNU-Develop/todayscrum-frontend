@@ -822,8 +822,7 @@ export const ScheduleParticipateForm = ({
   form,
   participates,
   setParticipates,
-  userInfo,
-}: participateFormType & { userInfo: TeamInfo }) => {
+}: participateFormType) => {
   const [searchTerm, setSearchTerm] = React.useState('')
   const [searchResults, setSearchResults] = React.useState<TeamInfo[]>([])
 
@@ -836,12 +835,12 @@ export const ScheduleParticipateForm = ({
 
   const userList = teamData?.result || []
 
-  React.useEffect(() => {
-    // 프로젝트가 선택되었고, 생성자가 목록에 없다면 추가
-    if (projectId && !participates.some((p) => p.email === userInfo.email)) {
-      setParticipates((prev) => [...prev, userInfo])
-    }
-  }, [userInfo, participates, setParticipates, projectId])
+  // React.useEffect(() => {
+  //   // 프로젝트가 선택되었고, 생성자가 목록에 없다면 추가
+  //   if (projectId && !participates.some((p) => p.email === userInfo.email)) {
+  //     setParticipates((prev) => [...prev, userInfo])
+  //   }
+  // }, [userInfo, participates, setParticipates, projectId])
 
   React.useEffect(() => {
     if (searchTerm.startsWith('@')) {
@@ -944,7 +943,7 @@ export const ScheduleParticipateForm = ({
                 >
                   {participant.attend ? participant.attend : '대기'}
                 </p>
-                {participant.email !== userInfo.email && ( // 생성자가 아닐 경우에만 삭제 아이콘을 표시
+                {participant.email && ( // 생성자가 아닐 경우에만 삭제 아이콘을 표시
                   <XIcon
                     className="h-4 w-4 cursor-pointer"
                     onClick={() => {
