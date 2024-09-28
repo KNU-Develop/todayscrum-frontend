@@ -7,7 +7,7 @@ export interface Member {
   email: string
 }
 export enum NotificationType {
-  Comment = 'COMMENT', // 댓글 알림
+  Comment = '댓글', // 댓글 알림
   Mention = '멘션', // 게시글 언급 알림
   EventInvite = 'EVENT_INVITE', // 일정 초대 알림
   ProjectInvite = '초대', // 프로젝트 초대 알림

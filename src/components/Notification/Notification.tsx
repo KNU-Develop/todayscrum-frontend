@@ -425,7 +425,10 @@ const NotificationDropdown: React.FC = () => {
       setNotification(notification)
       setMeetingReminderShowModal(true)
     }
-    if (notification.type === NotificationType.Mention) {
+    if (
+      notification.type === NotificationType.Mention ||
+      notification.type === NotificationType.Comment
+    ) {
       setNotification(notification)
       post.mutate({
         id: notification.id,
@@ -473,7 +476,7 @@ const NotificationDropdown: React.FC = () => {
             <Bell size={20} />
             <ListCheck size={20} />
           </div>
-          <ul className="scrollbar-hide max-h-[40vh] space-y-2 overflow-y-auto p-4">
+          <ul className="max-h-[40vh] space-y-2 overflow-y-auto p-4 scrollbar-hide">
             {notificationList.map((notice) => (
               <li
                 key={notice.id}
