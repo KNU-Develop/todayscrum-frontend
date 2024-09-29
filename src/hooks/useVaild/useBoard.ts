@@ -10,7 +10,7 @@ const period = z.object({
   to: z.date(),
 })
 const content = z.string()
-const mastersId = z.array(z.string()).optional()
+const mastersId = z.array(z.number()).optional()
 const progress = z.enum([
   BoardProgress.done,
   BoardProgress.problem,

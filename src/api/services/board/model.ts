@@ -1,4 +1,4 @@
-import { Comment } from "../comment/model"
+import { Comment } from '../comment/model'
 
 export const enum BoardCategory {
   issue = '이슈',
@@ -28,7 +28,7 @@ export interface BoardDto {
   createdAt: string
   comments: Comment[] | []
 }
-interface MasterDto {
+export interface MasterDto {
   id: number
   name: string
   email: string

@@ -52,3 +52,38 @@ export const StatusDropdown = forwardRef<
     document.body,
   )
 })
+
+export const StatusDropDownCreate = forwardRef<
+  HTMLDivElement,
+  StatusDropdownProps & { className?: string }
+>(({ form, onClose, className = 'w-[130px]' }, ref) => {
+  const statuses = [
+    BoardProgress.problem,
+    BoardProgress.progress,
+    BoardProgress.done,
+  ]
+
+  return (
+    <div
+      ref={ref}
+      className={`absolute z-50 mt-1 w-full overflow-hidden rounded-md border bg-white shadow-lg ${className}`}
+      onClick={(e) => e.stopPropagation()}
+    >
+      {statuses.map((status) => (
+        <div
+          key={status}
+          className={`flex cursor-pointer items-center px-4 py-2 text-center hover:bg-gray-100 ${
+            status === form.watch('progress') ? 'font-bold text-blue-600' : ''
+          }`}
+          onClick={() => {
+            form.setValue('progress', status)
+            onClose()
+          }}
+        >
+          {/* ... 아이콘 및 상태 표시 ... */}
+          {status}
+        </div>
+      ))}
+    </div>
+  )
+})

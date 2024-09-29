@@ -40,7 +40,7 @@ import { Form } from '../ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fromCreateBoard } from '@/hooks/useVaild/useBoard'
 import { z } from 'zod'
-import { StatusDropdown } from './StatusDropDown'
+import { StatusDropdown, StatusDropDownCreate } from './StatusDropDown'
 
 interface TeamCheckboxProps {
   id: string
@@ -74,6 +74,7 @@ interface StatusDropdownProps {
 interface CategoryDropdownProps {
   form: UseFormReturn<z.infer<any>>
   onClose: () => void
+  className?: string
 }
 
 interface DeleteModalProps {
@@ -244,8 +245,7 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
                 <div className="px-4 py-2">{form.watch('progress')}</div>
               </div>
               {isStatusDropdownOpen && (
-                <StatusDropdown
-                  // className="top-13 w-full"
+                <StatusDropDownCreate
                   form={form}
                   onClose={() => setIsStatusDropdownOpen(false)}
                 />
@@ -289,14 +289,17 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
     </div>
   )
 }
-const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
+export const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
   form,
   onClose,
+  className,
 }) => {
   const categories = [BoardCategory.issue, BoardCategory.feadback]
 
   return (
-    <div className="absolute right-2 z-10 mt-2 w-[120px] overflow-hidden rounded-md border bg-white shadow-lg">
+    <div
+      className={`absolute right-2 z-10 mt-2 w-[120px] overflow-hidden rounded-md border bg-white shadow-lg ${className}`}
+    >
       {categories.map((category) => (
         <div
           key={category}
