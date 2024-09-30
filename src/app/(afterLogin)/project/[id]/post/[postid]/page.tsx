@@ -34,7 +34,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
 import { da, ko, ro } from 'date-fns/locale'
 import { create } from 'domain'
-import { Pencil, Trash2 } from 'lucide-react'
+import { MessageCircleWarning, Pencil, Trash2 } from 'lucide-react'
 import { useParams, usePathname, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
@@ -415,12 +415,21 @@ const Page = () => {
   const board = BoardResponse.data?.result
   const comments = CommentResponse.data?.result
 
+  console.log('board', board)
+
   return (
     <div>
-      <PostContainer
-        board={board as BoardDto}
-        comments={comments as Comment[] | []}
-      />
+      {!board ? (
+        <div className="flex h-[60vh] flex-col items-center justify-center gap-8 font-pretendard">
+          <MessageCircleWarning size={`20vh`} />
+          <h1 className="flex text-h2">게시글이 존재하지 않습니다.</h1>
+        </div>
+      ) : (
+        <PostContainer
+          board={board as BoardDto}
+          comments={comments as Comment[] | []}
+        />
+      )}
     </div>
   )
 }
