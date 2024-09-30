@@ -41,6 +41,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { fromCreateBoard } from '@/hooks/useVaild/useBoard'
 import { z } from 'zod'
 import { StatusDropdown, StatusDropDownCreate } from './StatusDropDown'
+import { ProfileAvatar } from '../Avatar/Avatar'
 
 interface TeamCheckboxProps {
   id: string
@@ -1070,13 +1071,18 @@ const Board: React.FC<BoardProps> = ({
                 <td className="w-[100px] border-b px-4 py-2">
                   {item.category}
                 </td>
-                <td className="w-[200px] border-b px-4 py-2">{item.title}</td>
-                <td className="w-[150px] border-b px-4 py-2">
-                  {item.masters.length === 0
-                    ? null
-                    : item.masters.length === 1
-                      ? item.masters[0].name
-                      : `${item.masters[0].name} +${item.masters.length - 1}`}
+                <td className="w-[150px] border-b px-4 py-2">{item.title}</td>
+                <td className="w-[200px] border-b px-4 py-2">
+                  <div className="flex items-center -space-x-3">
+                    {item.masters.slice(0, 5).map((member, index) => (
+                      <ProfileAvatar key={index} size="24" name={member.name} />
+                    ))}
+                  </div>
+                  {item.masters.length > 5 && (
+                    <p className="text-small text-gray-400">
+                      +{item.masters.length - 5}
+                    </p>
+                  )}
                 </td>
                 <td className="w-[150px] border-b px-2 py-2">
                   {format(item.createdAt, 'yy.MM.dd (EEE)', { locale: ko })}
