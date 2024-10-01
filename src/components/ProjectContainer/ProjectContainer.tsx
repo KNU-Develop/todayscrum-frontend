@@ -4,7 +4,6 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { da, fr, id, ko } from 'date-fns/locale'
 import { ProjectInfo, useProjectInfoQuery, useUserInfoQuery } from '@/api'
 import { format } from 'date-fns'
-import { Check } from 'lucide-react'
 import {
   useAddBoardMutation,
   useBoardListQuery,
@@ -41,6 +40,8 @@ import { Form } from '../ui/form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { fromCreateBoard } from '@/hooks/useVaild/useBoard'
 import { z } from 'zod'
+import { StatusDropdown, StatusDropDownCreate } from './StatusDropDown'
+import { ProfileAvatar } from '../Avatar/Avatar'
 
 interface TeamCheckboxProps {
   id: string
@@ -74,6 +75,7 @@ interface StatusDropdownProps {
 interface CategoryDropdownProps {
   form: UseFormReturn<z.infer<any>>
   onClose: () => void
+  className?: string
 }
 
 interface DeleteModalProps {
@@ -244,8 +246,7 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
                 <div className="px-4 py-2">{form.watch('progress')}</div>
               </div>
               {isStatusDropdownOpen && (
-                <StatusDropdown
-                  className="top-13 w-full"
+                <StatusDropDownCreate
                   form={form}
                   onClose={() => setIsStatusDropdownOpen(false)}
                 />
@@ -289,72 +290,17 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
     </div>
   )
 }
-
-const StatusDropdown: React.FC<
-  StatusDropdownProps & { className?: string }
-> = ({
+export const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
   form,
   onClose,
-  className = 'w-[130px] top-4', // Default width
-}) => {
-  const statuses = [
-    BoardProgress.problem,
-    BoardProgress.progress,
-    BoardProgress.done,
-  ]
-
-  return (
-    <div
-      className={`absolute z-10 mt-2 overflow-hidden rounded-md border bg-white shadow-lg ${className}`}
-    >
-      {statuses.map((status) => (
-        <div
-          key={status}
-          className={`flex cursor-pointer items-center px-4 py-2 text-center hover:bg-gray-100 ${
-            status === form.watch('progress') ? 'font-bold text-blue-600' : ''
-          }`}
-          onClick={() => {
-            form.setValue('progress', status)
-            onClose()
-          }}
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
-            className="mr-2"
-            style={{
-              visibility:
-                status === form.watch('progress') ? 'visible' : 'hidden',
-            }}
-          >
-            <path
-              d="M13.3332 4L5.99984 11.3333L2.6665 8"
-              stroke="#334155"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
-          {status}
-        </div>
-      ))}
-    </div>
-  )
-}
-
-const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
-  // currentCategory,
-  // onChangeCategory,
-  form,
-  onClose,
+  className,
 }) => {
   const categories = [BoardCategory.issue, BoardCategory.feadback]
 
   return (
-    <div className="absolute right-2 z-10 mt-2 w-[120px] overflow-hidden rounded-md border bg-white shadow-lg">
+    <div
+      className={`absolute right-2 z-10 mt-2 w-[120px] overflow-hidden rounded-md border bg-white shadow-lg ${className}`}
+    >
       {categories.map((category) => (
         <div
           key={category}
@@ -747,9 +693,58 @@ const Board: React.FC<BoardProps> = ({
     key: keyof BoardDto
     direction: string
   } | null>(null)
-  const [activeDropdown, setActiveDropdown] = useState(false)
+  const [activeDropdownIndex, setActiveDropdownIndex] = useState<number | null>(
+    null,
+  )
+
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 })
+  const statusRefs = useRef<(HTMLDivElement | null)[]>([])
+  const scrollContainerRef = useRef<HTMLDivElement | null>(null)
+  const dropdownRef = useRef<HTMLDivElement | null>(null)
   const queryClient = useQueryClient()
   const route = useRouter()
+
+  useEffect(() => {
+    if (activeDropdownIndex !== null) {
+      const handleClickOutside = (event: MouseEvent) => {
+        const statusRef = statusRefs.current[activeDropdownIndex]
+        const dropdownElement = dropdownRef.current
+
+        if (
+          statusRef &&
+          !statusRef.contains(event.target as Node) &&
+          dropdownElement &&
+          !dropdownElement.contains(event.target as Node)
+        ) {
+          setActiveDropdownIndex(null)
+        }
+      }
+
+      const handleScroll = () => {
+        setActiveDropdownIndex(null)
+      }
+
+      document.addEventListener('mousedown', handleClickOutside)
+
+      window.addEventListener('scroll', handleScroll)
+      if (scrollContainerRef.current) {
+        scrollContainerRef.current.addEventListener('scroll', handleScroll)
+      } else {
+        window.addEventListener('scroll', handleScroll)
+      }
+
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+
+        window.removeEventListener('scroll', handleScroll)
+        if (scrollContainerRef.current) {
+          scrollContainerRef.current.removeEventListener('scroll', handleScroll)
+        } else {
+          window.removeEventListener('scroll', handleScroll)
+        }
+      }
+    }
+  }, [activeDropdownIndex])
 
   const handleSelectItem = (id: string) => {
     setSelectedItems((prevSelectedItems) =>
@@ -832,7 +827,7 @@ const Board: React.FC<BoardProps> = ({
   const UpdateBoard = useUpdateBoardMutation({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['boardList'] })
-      toast('보드 수정 성공', { duration: 3000 })
+      toast('보드 수정 성공', { duration: 1000 })
     },
     onError: () => toast('보드 수정 실패', { duration: 3000 }),
   })
@@ -843,13 +838,24 @@ const Board: React.FC<BoardProps> = ({
     },
   })
 
-  const handleStatusClick = (status: BoardProgress) => {
-    // setActiveDropdown(activeDropdown === index ? null : index)
-    setActiveDropdown(true)
+  const handleStatusClick = (index: number) => {
+    form.setValue('progress', items[index].progress)
+    if (activeDropdownIndex === index) {
+      setActiveDropdownIndex(null)
+    } else {
+      setActiveDropdownIndex(index)
+      if (statusRefs.current[index]) {
+        const rect = statusRefs.current[index]!.getBoundingClientRect()
+        setDropdownPosition({
+          top: rect.bottom + window.scrollY,
+          left: rect.left + window.scrollX,
+        })
+      }
+    }
   }
 
   const handleChangeStatus = (index: number, newStatus: BoardProgress) => {
-    const uid = items[index].id
+    // const uid = items[index].id
 
     const updatedBoard: InputBoard = {
       id: items[index].id,
@@ -863,7 +869,7 @@ const Board: React.FC<BoardProps> = ({
     items[index].progress = newStatus
   }
 
-  const renderStatus = (status: BoardProgress) => {
+  const renderStatus = (status: BoardProgress, index: number) => {
     return (
       <div
         className={`relative flex w-[75px] cursor-pointer items-center rounded-[15px] ${
@@ -873,7 +879,10 @@ const Board: React.FC<BoardProps> = ({
               ? 'bg-blue-200'
               : 'bg-green-200'
         } px-[8px]`}
-        onClick={() => handleStatusClick(status)}
+        ref={(el) => {
+          statusRefs.current[index] = el
+        }}
+        onClick={() => handleStatusClick(index)}
       >
         <span
           className={`h-2.5 w-2.5 rounded-full ${
@@ -891,15 +900,18 @@ const Board: React.FC<BoardProps> = ({
               ? '진행중'
               : '완료'}
         </span>
-        {
-          // 새로운 컴포넌트 넣는게 좋아보임
-          /* {activeDropdown && (
+        {activeDropdownIndex === index && (
           <StatusDropdown
+            className="w-[200px]"
             form={form}
-            onClose={() => setActiveDropdown(false)}
+            onClose={() => {
+              handleChangeStatus(index, form.watch('progress'))
+              setActiveDropdownIndex(null)
+            }}
+            position={dropdownPosition}
+            ref={dropdownRef}
           />
-        )} */
-        }
+        )}
       </div>
     )
   }
@@ -1032,7 +1044,10 @@ const Board: React.FC<BoardProps> = ({
           </thead>
         </table>
       </div>
-      <div className="max-h-[300px] overflow-y-auto">
+      <div
+        className="max-h-[300px] min-h-[200px] overflow-y-auto"
+        ref={scrollContainerRef}
+      >
         <table className="w-full bg-white">
           <tbody>
             {sortedItems.map((item, index) => (
@@ -1056,22 +1071,30 @@ const Board: React.FC<BoardProps> = ({
                 <td className="w-[100px] border-b px-4 py-2">
                   {item.category}
                 </td>
-                <td className="w-[200px] border-b px-4 py-2">{item.title}</td>
-                <td className="w-[150px] border-b px-4 py-2">
-                  {item.masters.length === 0
-                    ? null
-                    : item.masters.length === 1
-                      ? item.masters[0].name
-                      : `${item.masters[0].name} +${item.masters.length - 1}`}
+                <td className="w-[150px] border-b px-4 py-2">{item.title}</td>
+                <td className="w-[200px] border-b px-4 py-2">
+                  <div className="flex items-center -space-x-3">
+                    {item.masters.slice(0, 5).map((member, index) => (
+                      <ProfileAvatar key={index} size="24" name={member.name} />
+                    ))}
+                  </div>
+                  {item.masters.length > 5 && (
+                    <p className="text-small text-gray-400">
+                      +{item.masters.length - 5}
+                    </p>
+                  )}
                 </td>
-                <td className="w-[150px] border-b px-4 py-2">
+                <td className="w-[150px] border-b px-2 py-2">
                   {format(item.createdAt, 'yy.MM.dd (EEE)', { locale: ko })}
                 </td>
                 <td
-                  className="relative w-[100px] border-b px-4 py-2"
-                  onClick={(e) => e.stopPropagation()}
+                  className="relative w-[100px] border-b py-2 pl-5"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleStatusClick(index)
+                  }}
                 >
-                  {renderStatus(item.progress)}
+                  {renderStatus(item.progress, index)}
                 </td>
               </tr>
             ))}
@@ -1255,9 +1278,7 @@ const ProjectContainer = ({ data }: { data: ProjectInfo }) => {
   }
 
   const { openModal, modals } = useModal()
-
   const [selectedItems, setSelectedItems] = useState<string[]>([])
-
   const [filters, setFilters] = useState<FilterChangeProps>({
     statuses: [],
     assignees: [],

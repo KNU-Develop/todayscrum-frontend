@@ -693,7 +693,15 @@ export const ParticipateForm = ({
   const [searchTerm, setSearchTerm] = React.useState('')
   const [searchResults, setSearchResults] = React.useState<TeamInfo[]>([])
   const path = usePathname()
-  const id = path.split('/').pop()
+  const id = (() => {
+    const segments = path.split('/')
+    const projectIndex = segments.indexOf('project')
+    if (projectIndex !== -1 && segments.length > projectIndex + 1) {
+      return segments[projectIndex + 1]
+    } else {
+      return ''
+    }
+  })()
 
   const projectList = useProjectInfoQuery().data?.result
   const selectedId =
@@ -798,11 +806,6 @@ export const ParticipateForm = ({
                   size="28px"
                 />
                 <p className="flex-[1_0_0] text-small">{participant.name}</p>
-                <p
-                  className={`text-detail ${getAttendClass(participant.attend)}`}
-                >
-                  {participant.attend ? participant.attend : '전송'}
-                </p>
                 <XIcon
                   className="h-4 w-4 cursor-pointer"
                   onClick={() => {

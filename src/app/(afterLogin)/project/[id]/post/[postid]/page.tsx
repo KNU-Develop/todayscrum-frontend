@@ -1,8 +1,15 @@
 'use client'
 
 import { useTeamInfoQuery, useUserInfoQuery } from '@/api'
-import { BoardDto, BoardResponse } from '@/api/services/board/model'
-import { useBoardQuery } from '@/api/services/board/quries'
+import {
+  BoardDto,
+  BoardProgress,
+  BoardResponse,
+} from '@/api/services/board/model'
+import {
+  useBoardQuery,
+  useDeleteBoardMutation,
+} from '@/api/services/board/quries'
 import {
   Comment,
   CommentResponse,
@@ -14,16 +21,21 @@ import {
   useDeleteCommentMutation,
   useUpdateCommentMutation,
 } from '@/api/services/comment/quries'
-import { ProjectUserInfo } from '@/api/services/project/model'
+import { ProjectInfo, ProjectUserInfo } from '@/api/services/project/model'
 import { useOneProjectInfoQuery } from '@/api/services/project/quries'
 import { ProfileAvatar } from '@/components/Avatar/Avatar'
+import { EditBoardModal } from '@/components/Modal/PostModal'
 import { Form } from '@/components/ui/form'
+import { useModal } from '@/hooks/useModal'
+import { ModalTypes } from '@/hooks/useModal/useModal'
 import { fromCreateComment } from '@/hooks/useVaild/useComment'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { format } from 'date-fns'
-import { da, ko } from 'date-fns/locale'
-import { useParams, usePathname } from 'next/navigation'
+import { da, ko, ro } from 'date-fns/locale'
+import { create } from 'domain'
+import { MessageCircleWarning, Pencil, Trash2 } from 'lucide-react'
+import { useParams, usePathname, useRouter } from 'next/navigation'
 import React, { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { toast } from 'sonner'
@@ -138,8 +150,8 @@ const CommentContainer: React.FC<CommentContainerProps> = ({
               </>
             ) : (
               <>
-                <SvgIcon name="edit" onClick={handleEditClick} />
-                <SvgIcon name="delete" onClick={() => onDelete(comment)} />
+                <Pencil size={16} onClick={handleEditClick} />
+                <Trash2 size={16} onClick={() => onDelete(comment)} />
               </>
             )}
           </div>
@@ -179,8 +191,11 @@ const PostContainer: React.FC<{
   board: BoardDto
   comments: Comment[] | []
 }> = ({ board, comments }) => {
+  const router = useRouter()
   const pathName = usePathname()
   const projectId = pathName.split('/project/')[1]?.split('/')[0]
+
+  const { openModal, modals } = useModal()
 
   const [filteredUsers, setFilteredUsers] = useState<ProjectUserInfo[]>([])
   const [master, setMaster] = useState<ProjectUserInfo[]>([])
@@ -198,6 +213,7 @@ const PostContainer: React.FC<{
   const project = useOneProjectInfoQuery(projectId).data
   const team = project?.result?.users
   const description = form.watch('description')
+
   const addComment = useAddCommentMutation(board?.id, {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['board'] })
@@ -205,6 +221,15 @@ const PostContainer: React.FC<{
       toast(`댓글 생성 성공`)
     },
     onError: () => toast(`댓글 생성 실패`),
+  })
+
+  const deleteBoard = useDeleteBoardMutation({
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['board'] })
+      router.push(`/project/${projectId}`)
+      toast('게시글 삭제 성공')
+    },
+    onError: () => toast('게시글 삭제 실패'),
   })
 
   const deleteComment = useDeleteCommentMutation({
@@ -263,6 +288,22 @@ const PostContainer: React.FC<{
     setFilteredUsers([])
   }
 
+  const renderModal = () => {
+    if (!modals.dimed.open) return null
+
+    switch (modals.dimed.type) {
+      case ModalTypes.EDIT:
+        return (
+          <EditBoardModal
+            board={board}
+            project={project?.result as ProjectInfo}
+          />
+        )
+      default:
+        return null
+    }
+  }
+
   return (
     <div className="h-screen">
       {board && (
@@ -270,8 +311,12 @@ const PostContainer: React.FC<{
           <div className="mt-[14px] flex flex-col gap-[24px] rounded-md border-2 border-slate-200 p-[24px]">
             <div className="flex justify-between">
               <div className="flex gap-[16px]">
-                <div className="relative flex w-[75px] cursor-pointer items-center rounded-[15px] bg-red-200 px-[8px]">
-                  <span className="h-2.5 w-2.5 rounded-full bg-red-500" />
+                <div
+                  className={`relative flex w-[75px] items-center rounded-[15px] px-[8px] ${board?.progress === BoardProgress.problem ? 'bg-red-200' : board?.progress === BoardProgress.progress ? 'bg-blue-200' : 'bg-green-200'}`}
+                >
+                  <span
+                    className={`h-2.5 w-2.5 rounded-full ${board?.progress === BoardProgress.problem ? 'bg-red-500' : board?.progress === BoardProgress.progress ? 'bg-blue-500' : 'bg-green-500'}`}
+                  />
                   <span className="w-full text-center">{board?.progress}</span>
                 </div>
                 <div className="text-h3">{board?.title}</div>
@@ -281,8 +326,16 @@ const PostContainer: React.FC<{
               </div>
               {user.data?.result.name === board.userName && (
                 <div className="flex gap-[12px]">
-                  <SvgIcon name="edit" />
-                  <SvgIcon name="delete" />
+                  <Pencil
+                    className="cursor-pointer"
+                    size={16}
+                    onClick={() => openModal('dimed', ModalTypes.EDIT)}
+                  />
+                  <Trash2
+                    className="cursor-pointer"
+                    size={16}
+                    onClick={() => deleteBoard.mutate(board.id)}
+                  />
                 </div>
               )}
             </div>
@@ -343,107 +396,13 @@ const PostContainer: React.FC<{
                 </form>
               </Form>
             </div>
+            {renderModal()}
           </div>
         </>
       )}
     </div>
   )
 }
-
-const SvgIcon: React.FC<{ name: 'edit' | 'delete'; onClick?: () => void }> = ({
-  name,
-  onClick,
-}) => {
-  const handleClick = () => {
-    if (onClick) onClick()
-  }
-
-  switch (name) {
-    case 'edit':
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          onClick={handleClick}
-        >
-          <g clipPath="url(#clip0)">
-            <path
-              d="M12 1.33398L14.6667 4.00065"
-              stroke="#374151"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M4.99967 13.6673L12.6663 6.00065L9.99967 3.33398L2.33301 11.0007L1.33301 14.6673L4.99967 13.6673Z"
-              stroke="black"
-              strokeWidth="1.33333"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </g>
-          <defs>
-            <clipPath id="clip0">
-              <rect width="16" height="16" fill="white" />
-            </clipPath>
-          </defs>
-        </svg>
-      )
-    case 'delete':
-      return (
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="16"
-          height="16"
-          viewBox="0 0 16 16"
-          fill="none"
-          onClick={handleClick}
-        >
-          <path
-            d="M2 4H14"
-            stroke="#374151"
-            strokeWidth="1.33333"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M12.6663 4V13.3333C12.6663 14 11.9997 14.6667 11.333 14.6667H4.66634C3.99967 14.6667 3.33301 14 3.33301 13.3333V4"
-            stroke="black"
-            strokeWidth="1.33333"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M5.33301 4.00065V2.66732C5.33301 2.00065 5.99967 1.33398 6.66634 1.33398H9.33301C9.99967 1.33398 10.6663 2.00065 10.6663 2.66732V4.00065"
-            stroke="black"
-            strokeWidth="1.33333"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M6.66699 7.33398V11.334"
-            stroke="black"
-            strokeWidth="1.33333"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-          <path
-            d="M9.33301 7.33398V11.334"
-            stroke="black"
-            strokeWidth="1.33333"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
-      )
-    default:
-      return null
-  }
-}
-
 const Page = () => {
   const path = usePathname()
   const boardId = path.split('/post/').pop() || null
@@ -456,12 +415,21 @@ const Page = () => {
   const board = BoardResponse.data?.result
   const comments = CommentResponse.data?.result
 
+  console.log('board', board)
+
   return (
     <div>
-      <PostContainer
-        board={board as BoardDto}
-        comments={comments as Comment[] | []}
-      />
+      {!board ? (
+        <div className="flex h-[60vh] flex-col items-center justify-center gap-8 font-pretendard">
+          <MessageCircleWarning size={`20vh`} />
+          <h1 className="flex text-h2">게시글이 존재하지 않습니다.</h1>
+        </div>
+      ) : (
+        <PostContainer
+          board={board as BoardDto}
+          comments={comments as Comment[] | []}
+        />
+      )}
     </div>
   )
 }
