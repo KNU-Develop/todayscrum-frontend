@@ -23,6 +23,8 @@ export interface ProjectUserInfo {
   tools: tooldto[] | []
   mbti: string
   role: ProjectUserRole
+  color: string
+  choice: ProjectInviteStatus
 }
 interface tooldto {
   toolName: string

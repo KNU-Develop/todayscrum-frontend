@@ -28,7 +28,7 @@ const Page = () => {
 
   const { data: schedules } = useScheduleListQuery(startDate, endDate)
   const { data: projects } = useProjectInfoQuery()
-  const {data:userInfo} = useUserInfoQuery()
+  const { data: userInfo } = useUserInfoQuery()
 
   const [selectedView, setSelectedView] = React.useState('month')
 
@@ -114,7 +114,11 @@ const Page = () => {
           <List schedules={schedule} projects={projects?.result} />
         ) : null}
         {selectedView === 'week' ? (
-          <Weekly date={state.date} schedules={schedule} projects={projects?.result} />
+          <Weekly
+            date={state.date}
+            schedules={schedule}
+            projects={projects?.result}
+          />
         ) : null}
         {selectedView === 'month' ? (
           <Monthly

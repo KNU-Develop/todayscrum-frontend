@@ -887,6 +887,10 @@ export const ScheduleParticipateForm = ({
     setParticipates(participates.filter((_, i) => i !== index))
   }
 
+  React.useEffect(() => {
+    console.log(participates)
+  }, [participates])
+
   const getAttendClass = (attend: string) => {
     switch (attend) {
       case '수락':
