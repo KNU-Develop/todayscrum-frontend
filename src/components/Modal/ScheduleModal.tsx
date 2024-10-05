@@ -56,6 +56,7 @@ import {
   InviteStatus,
 } from '@/api/services/schedule/model'
 import { id } from 'date-fns/locale'
+import { ProjectUserRole } from '@/api/services/project/model'
 
 const getRepeatOptions = (date: Date) => {
   const dayOfWeekNames = [
@@ -122,8 +123,12 @@ export const ScheduleCreateModal = () => {
     {
       title: form.watch('title'),
       content: form.watch('content'),
-      startDate: form.watch('period')?.from?.toISOString(),
-      endDate: form.watch('period')?.to?.toISOString(),
+      startDate: new Date(
+        form.watch('period')?.from.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
+      endDate: new Date(
+        form.watch('period')?.to.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
       visible: form.watch('visible') as ScheduleVisibility,
       projectId: form.watch('projectId') || null,
       inviteList: (form.watch('inviteList') as string[]) || [],
@@ -398,25 +403,44 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
   }
   React.useEffect(() => {
     const inviteList = form.getValues('inviteList') // 미리 inviteList를 가져옴
-    const userData = selectedProject?.users
-      .filter((user) => inviteList.some((item) => item.id === user.id))
-      .map((user) => {
-        const matchedInvite = inviteList.find((item) => item.id === user.id)
 
-        return {
-          id: user.id,
-          name: user.name,
-          email: user.email,
-          choice: user.choice,
-          role: user.role,
-          location: user.location,
-          mbti: user.mbti,
-          imageUrl: user.imageUrl,
-          color: user.color,
-          attend: matchedInvite?.state,
-        }
-      })
-    setParticipates(userData as TeamInfo[])
+    if (form.watch('type') === '팀 일정') {
+      const userData = selectedProject?.users
+        .filter((user) => inviteList.some((item) => item.id === user.id))
+        .map((user) => {
+          const matchedInvite = inviteList.find((item) => item.id === user.id)
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            choice: user.choice,
+            role: user.role,
+            location: user.location,
+            mbti: user.mbti,
+            imageUrl: user.imageUrl,
+            color: user.color,
+            attend: matchedInvite?.state,
+          }
+        })
+      setParticipates(userData as TeamInfo[])
+    } else if (form.watch('type') === '개인 일정') {
+      const userData = [
+        {
+          id: userInfo?.result.id,
+          name: userInfo?.result.name,
+          email: userInfo?.result.email,
+          choice: ProjectInviteStatus.Acceped,
+          role: ProjectUserRole.Master,
+          location: userInfo?.result.location,
+          mbti: userInfo?.result.mbti,
+          imageUrl: userInfo?.result.imageUrl,
+          color: userInfo?.result.color,
+          attend: InviteStatus.ACCEPTED,
+        },
+      ]
+      setParticipates(userData as TeamInfo[])
+    }
   }, [form.watch('inviteList'), selectedProject?.users])
 
   const onSubmit = () => {
@@ -429,8 +453,12 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
     editScheduleInfo.mutate({
       title: form.watch('title') ?? '',
       content: form.watch('content') ?? '',
-      startDate: form.watch('period').from.toISOString(),
-      endDate: form.watch('period').to.toISOString(),
+      startDate: new Date(
+        form.watch('period')?.from.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
+      endDate: new Date(
+        form.watch('period')?.to.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
       visible: form.watch('visible') as ScheduleVisibility,
       projectId: form.watch('projectId') || null,
       inviteList: userId || [],

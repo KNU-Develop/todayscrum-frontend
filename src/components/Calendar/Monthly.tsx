@@ -131,13 +131,13 @@ export const Monthly: React.FC<MonthlyProps> = ({
                               <div
                                 className={`h-1 w-1 flex-shrink-0 rounded-full ${getDotColor(getColor(schedule))}`}
                               />
-                              <p className="display-webkit-box box-orient-vertical line-clamp-2 text-detail">
+                              <p className="text-ellipsis whitespace-nowrap text-detail">
                                 {formatTime(
                                   schedule.startDate,
                                   schedule.endDate,
                                 )}
                               </p>
-                              <p className="display-webkit-box box-orient-vertical line-clamp-1 text-detail">
+                              <p className="display-webkit-box box-orient-vertical line-clamp-1 overflow-hidden break-all text-detail">
                                 {schedule.title}
                               </p>
                             </div>
