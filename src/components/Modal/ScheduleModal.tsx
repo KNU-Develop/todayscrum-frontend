@@ -177,8 +177,15 @@ export const ScheduleCreateModal = () => {
 
   const onSubmit = () => {
     const invitedList = participates.map((item) => item.id) || []
+
+    if (form.watch('type') === '팀 일정') {
+      if (participates.length === 0) {
+        invitedList.push(userInfo?.result.id as string)
+      }
+    }
     form.setValue('inviteList', Array.isArray(invitedList) ? invitedList : [])
-    console.log(form.watch('inviteList'))
+
+    console.log(form.getValues('inviteList'))
 
     addScheduleInfo.mutate()
   }
