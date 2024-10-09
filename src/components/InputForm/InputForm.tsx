@@ -45,7 +45,7 @@ import { formatPhoneNumber } from '@/hooks/useVaild'
 import { format, getDay } from 'date-fns'
 import { UseFormReturn } from 'react-hook-form'
 import { TimePickerDemo } from '../TimePicker/time-picker-demo'
-import { Calendar } from '../ui/calendar'
+import { Calendar, ProjectCreateCalendar } from '../ui/calendar'
 import { Checkbox } from '../ui/checkbox'
 import {
   DropdownMenu,
@@ -470,7 +470,7 @@ export function DatePickerInfoForm({
                 />
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
+                <ProjectCreateCalendar
                   initialFocus
                   mode="range"
                   // disabled={(date) => date <= new Date()}
@@ -838,13 +838,6 @@ export const ScheduleParticipateForm = ({
 
   const userList = teamData?.result || []
 
-  // React.useEffect(() => {
-  //   // 프로젝트가 선택되었고, 생성자가 목록에 없다면 추가
-  //   if (projectId && !participates.some((p) => p.email === userInfo.email)) {
-  //     setParticipates((prev) => [...prev, userInfo])
-  //   }
-  // }, [userInfo, participates, setParticipates, projectId])
-
   React.useEffect(() => {
     if (searchTerm.startsWith('@')) {
       const filterTerm = searchTerm.slice(1).trim().toLowerCase()
@@ -886,10 +879,6 @@ export const ScheduleParticipateForm = ({
   const handleRemoveParticipant = (index: number) => {
     setParticipates(participates.filter((_, i) => i !== index))
   }
-
-  React.useEffect(() => {
-    console.log(participates)
-  }, [participates])
 
   const getAttendClass = (attend: string) => {
     switch (attend) {
@@ -946,7 +935,7 @@ export const ScheduleParticipateForm = ({
                 />
                 <p className="flex-[1_0_0] text-small">{participant.name}</p>
                 <p
-                  className={`text-detail ${getAttendClass(participant.attend)}`}
+                  className={`text-detail ${getAttendClass(participant.attend as string)}`}
                 >
                   {participant.attend ? participant.attend : '대기'}
                 </p>
