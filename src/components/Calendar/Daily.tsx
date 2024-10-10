@@ -74,7 +74,7 @@ export const Daily: React.FC<DailyProps> = ({ date, schedules, projects }) => {
           </p>
         ))}
       </div>
-      <div className="h-[1px] w-[832px] bg-gray-300" />
+      <div className="w-[832px] bg-gray-300" />
       <div className="flex flex-col items-start self-stretch">
         <div className="flex items-center self-stretch border-b border-gray-300">
           <div className="flex items-center justify-center gap-[10px] p-[10px]">

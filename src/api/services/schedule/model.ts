@@ -1,4 +1,4 @@
-import { string } from "zod"
+import { string } from 'zod'
 
 export enum ScheduleVisibility {
   PUBLIC = 'PUBLIC',
@@ -23,7 +23,7 @@ export interface ScheduleInfo {
   endDate: string
   visible: ScheduleVisibility
   projectId: string
-  inviteList: string[]
+  inviteList: Invite[]
 }
 
 // export interface RepeatInfo {
@@ -44,7 +44,7 @@ export interface ScheduleDetailResponse {
     endDate: string
     // repeat?: RepeatInfo,
     projectId: string
-    inviteList: string[]
+    inviteList: Invite[]
   }
 }
 export interface ScheduleListResponse {

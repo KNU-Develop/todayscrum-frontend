@@ -17,6 +17,7 @@ import { useForm } from 'react-hook-form'
 
 import {
   DeleteScheduleType,
+  ProjectInviteStatus,
   ScheduleInfo,
   ScheduleVisibility,
   TeamInfo,
@@ -49,7 +50,13 @@ import { Label } from '../ui/label'
 import { RadioGroup, RadioGroupItem } from '../ui/radio-group'
 import { Modal, ScheduleModal } from './Modal'
 import { ScheduleParticipateForm } from '../InputForm/InputForm'
-import { Invite, InviteStatus } from '@/api/services/schedule/model'
+import {
+  Invite,
+  InviteResponse,
+  InviteStatus,
+} from '@/api/services/schedule/model'
+import { id } from 'date-fns/locale'
+import { ProjectUserRole } from '@/api/services/project/model'
 
 const getRepeatOptions = (date: Date) => {
   const dayOfWeekNames = [
@@ -116,8 +123,12 @@ export const ScheduleCreateModal = () => {
     {
       title: form.watch('title'),
       content: form.watch('content'),
-      startDate: form.watch('period')?.from?.toISOString(),
-      endDate: form.watch('period')?.to?.toISOString(),
+      startDate: new Date(
+        form.watch('period')?.from.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
+      endDate: new Date(
+        form.watch('period')?.to.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
       visible: form.watch('visible') as ScheduleVisibility,
       projectId: form.watch('projectId') || null,
       inviteList: (form.watch('inviteList') as string[]) || [],
@@ -166,8 +177,15 @@ export const ScheduleCreateModal = () => {
 
   const onSubmit = () => {
     const invitedList = participates.map((item) => item.id) || []
+
+    if (form.watch('type') === '팀 일정') {
+      if (participates.length === 0) {
+        invitedList.push(userInfo?.result.id as string)
+      }
+    }
     form.setValue('inviteList', Array.isArray(invitedList) ? invitedList : [])
-    console.log(form.watch('inviteList'))
+
+    console.log(form.getValues('inviteList'))
 
     addScheduleInfo.mutate()
   }
@@ -326,6 +344,10 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
   const { data: schedules } = useScheduleDetailQuery(scheduleId)
   const { data: projects } = useProjectInfoQuery()
   // const userList = useTeamInfoQuery()
+  const selectedProject = projects?.result?.find(
+    (project) => project.id === schedules?.result.projectId,
+  )
+  const { data: userInfo } = useUserInfoQuery()
 
   const projectOptions =
     projects?.result?.map((project) => ({
@@ -351,32 +373,20 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
       },
       visible: schedules?.result.visible ?? ScheduleVisibility,
       projectId: schedules?.result.projectId ?? null,
-      inviteList: (schedules?.result.inviteList as string[]) ?? [],
+      inviteList: (schedules?.result.inviteList as Invite[]) ?? [],
     },
   })
 
-  const editScheduleInfo = useEditScheduleMutation(
-    scheduleId,
-    {
-      title: form.watch('title') ?? '',
-      content: form.watch('content') ?? '',
-      startDate: form.watch('period').from.toISOString(),
-      endDate: form.watch('period').to.toISOString(),
-      visible: form.watch('visible') as ScheduleVisibility,
-      projectId: form.watch('projectId') || null,
-      inviteList: (form.watch('inviteList') as string[]) || [],
+  const editScheduleInfo = useEditScheduleMutation(scheduleId, {
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['schedules'] })
+      closeModal('dimed')
+      closeModal('default')
     },
-    {
-      onSuccess: () => {
-        queryClient.invalidateQueries({ queryKey: ['schedules'] })
-        closeModal('dimed')
-        closeModal('default')
-      },
-      onError: (e) => {
-        console.log(e)
-      },
+    onError: (e) => {
+      console.log(e)
     },
-  )
+  })
 
   React.useEffect(() => {
     const scheduleType = form.watch('type')
@@ -398,9 +408,68 @@ export const ScheduleEditModal = ({ scheduleId }: { scheduleId: string }) => {
       setSelectedEndDate(form.watch('period').from)
     }
   }
+  React.useEffect(() => {
+    const inviteList = form.getValues('inviteList') // 미리 inviteList를 가져옴
+
+    if (form.watch('type') === '팀 일정') {
+      const userData = selectedProject?.users
+        .filter((user) => inviteList.some((item) => item.id === user.id))
+        .map((user) => {
+          const matchedInvite = inviteList.find((item) => item.id === user.id)
+
+          return {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            choice: user.choice,
+            role: user.role,
+            location: user.location,
+            mbti: user.mbti,
+            imageUrl: user.imageUrl,
+            color: user.color,
+            attend: matchedInvite?.state,
+          }
+        })
+      setParticipates(userData as TeamInfo[])
+    } else if (form.watch('type') === '개인 일정') {
+      const userData = [
+        {
+          id: userInfo?.result.id,
+          name: userInfo?.result.name,
+          email: userInfo?.result.email,
+          choice: ProjectInviteStatus.Acceped,
+          role: ProjectUserRole.Master,
+          location: userInfo?.result.location,
+          mbti: userInfo?.result.mbti,
+          imageUrl: userInfo?.result.imageUrl,
+          color: userInfo?.result.color,
+          attend: InviteStatus.ACCEPTED,
+        },
+      ]
+      setParticipates(userData as TeamInfo[])
+    }
+  }, [form.watch('inviteList'), selectedProject?.users])
 
   const onSubmit = () => {
-    editScheduleInfo.mutate()
+    let userId = participates.map((item) => item.id)
+
+    if (participates.length === 0) {
+      userId = userInfo?.result.id ? [userInfo?.result.id] : []
+    }
+
+    editScheduleInfo.mutate({
+      title: form.watch('title') ?? '',
+      content: form.watch('content') ?? '',
+      startDate: new Date(
+        form.watch('period')?.from.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
+      endDate: new Date(
+        form.watch('period')?.to.getTime() + 9 * 60 * 60 * 1000,
+      ).toISOString(),
+      visible: form.watch('visible') as ScheduleVisibility,
+      projectId: form.watch('projectId') || null,
+      inviteList: userId || [],
+    })
   }
 
   return (

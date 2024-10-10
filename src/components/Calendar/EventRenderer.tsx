@@ -80,14 +80,13 @@ export const EventRenderer: React.FC<EventRendererProps> = ({
         return (
           <div
             key={index}
-            className={`absolute z-10 cursor-pointer rounded-r-md rounded-br-md p-2 ${projectColor} border-l-[3px] ${getBorderColor(
+            className={`absolute z-10 w-[95%] cursor-pointer rounded-r-md rounded-br-md p-2 ${projectColor} border-l-[3px] ${getBorderColor(
               projectColor,
             )}`}
             style={{
               top: `${(getMinutes(new Date(event.startDate)) / 60) * 48}px`,
               height: `${(((getHours(new Date(event.endDate ?? event.startDate)) - getHours(new Date(event.startDate))) * 60 + (getMinutes(new Date(event.endDate ?? event.startDate)) - getMinutes(new Date(event.startDate)))) / 60) * 48}px`,
               left: `${leftOffset}px`,
-              width: `${width}px`,
             }}
             onClick={() => onScheduleSelect(event)}
           >

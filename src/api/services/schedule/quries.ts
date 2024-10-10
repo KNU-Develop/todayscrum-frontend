@@ -8,6 +8,7 @@ import {
 import { scheduleService } from './service'
 import {
   AddScheduleDTO,
+  DefaultResponse,
   DeleteScheduleType,
   EditScheduleDTO,
   ScheduleDetailResponse,
@@ -31,8 +32,9 @@ export const scheduleOptions = {
   useAddSchedule: (client: QueryClient, dto: AddScheduleDTO) => ({
     mutationFn: () => scheduleService.addSchedule(client, dto),
   }),
-  useEditSchedule: (client: QueryClient, id: string, dto: EditScheduleDTO) => ({
-    mutationFn: () => scheduleService.editSchedule(client, id, dto),
+  useEditSchedule: (client: QueryClient, id: string) => ({
+    mutationFn: (dto: EditScheduleDTO) =>
+      scheduleService.editSchedule(client, id, dto),
   }),
   useDeleteSchedule: (
     client: QueryClient,
@@ -82,13 +84,12 @@ export const useAddScheduleMutation = (
 
 export const useEditScheduleMutation = (
   id: string,
-  dto: EditScheduleDTO,
-  options: MutationOptions = {},
+  options: MutationOptions<DefaultResponse, Error, EditScheduleDTO> = {},
 ) => {
   const queryClient = useQueryClient()
 
-  return useMutation({
-    ...scheduleOptions.useEditSchedule(queryClient, id, dto),
+  return useMutation<DefaultResponse, Error, EditScheduleDTO>({
+    ...scheduleOptions.useEditSchedule(queryClient, id),
     ...options,
   })
 }
