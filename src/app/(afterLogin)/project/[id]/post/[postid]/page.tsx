@@ -340,7 +340,10 @@ const PostContainer: React.FC<{
               )}
             </div>
             <div className="flex gap-[8px]">
-              <div className="author">{board?.userName}</div>
+              <div className="flex items-center gap-[8px]">
+                <ProfileAvatar size="24" name={board?.userName} />
+                {board?.userName}
+              </div>
               <div className="flex items-end text-[12px] text-gray-500">
                 {format(board.createdAt, 'yy.MM.dd (EEE)', { locale: ko })}
               </div>
