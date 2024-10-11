@@ -42,7 +42,7 @@ export const CalendarHeader = ({
 
   useEffect(() => {
     // projects가 유효하고, selectedProject가 설정되어 있지 않을 경우에만 실행
-    if (projects?.result && Object.keys(state.selectedProject).length === 0) {
+    if (projects?.result?.length && Object.keys(state.selectedProject).length === 0) {
       const initialSelectedProjects = projects.result.reduce(
         (acc: { [key: string]: boolean }, project: any) => {
           acc[project.id] = true
