@@ -57,7 +57,7 @@ const profileEdit: React.FC = () => {
         .split(',')
         .map((stacks) => stacks.trim())
         .filter((stacks) => stacks !== ''),
-      mbti: form.watch('mbti') === '' ? null : form.watch('mbti'),
+      mbti: value === '' ? null : value,
       tools: Object.fromEntries(
         entries.map((entry) => [entry.tool.toUpperCase(), entry.email]),
       ),
@@ -84,7 +84,7 @@ const profileEdit: React.FC = () => {
         })),
       )
       form.setValue('stacks', data.result.stackNames.join(', ') || '')
-      form.setValue('mbti', data.result.mbti || '')
+      // form.setValue('mbti', data.result.mbti || '')
       setImageUrl(data.result.imageUrl || '')
       setValue(data.result.mbti || '')
     }
