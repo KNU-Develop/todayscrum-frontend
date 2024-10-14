@@ -42,6 +42,15 @@ import { fromCreateBoard } from '@/hooks/useVaild/useBoard'
 import { z } from 'zod'
 import { StatusDropdown, StatusDropDownCreate } from './StatusDropDown'
 import { ProfileAvatar } from '../Avatar/Avatar'
+import {
+  ArrowDown,
+  Check,
+  Trash2,
+  Search,
+  Filter,
+  Mail,
+  Settings,
+} from 'lucide-react'
 
 interface TeamCheckboxProps {
   id: string
@@ -193,21 +202,7 @@ const CreatePostModal: React.FC<CreateModalProps> = ({
               >
                 <div className="flex gap-[4px] px-4 py-2">
                   {form.watch('category')}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                  >
-                    <path
-                      d="M4 6L8 10L12 6"
-                      stroke="#374151"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <ArrowDown stroke="#374151" strokeWidth={1.33} />
                 </div>
                 {isCategoryDropdownOpen && (
                   <CategoryDropdown
@@ -312,26 +307,15 @@ export const CategoryDropdown: React.FC<CategoryDropdownProps> = ({
             onClose()
           }}
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 16 16"
-            fill="none"
+          <Check
             className="mr-2"
             style={{
               visibility:
                 category === form.watch('category') ? 'visible' : 'hidden',
             }}
-          >
-            <path
-              d="M13.3332 4L5.99984 11.3333L2.6665 8"
-              stroke="#334155"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+            stroke="#334155"
+            strokeWidth={2}
+          />
           {category}
         </div>
       ))}
@@ -494,51 +478,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
         onDelete={handleDeleteItems}
         selectedItems={selectedItems}
       />
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="24"
-        height="24"
-        viewBox="0 0 24 24"
+      <div
         onClick={handleDeleteClick}
-        fill="none"
         className={`cursor-pointer ${selectedItems.length === 0 ? 'cursor-not-allowed' : ''}`}
       >
-        <path
-          d="M3 6H21"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M19 6V20C19 21 18 22 17 22H7C6 22 5 21 5 20V6"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M8 6V4C8 3 9 2 10 2H14C15 2 16 3 16 4V6"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M10 11V17"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        <path
-          d="M14 11V17"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
+        <Trash2 width={24} height={24} />
+      </div>
       <div className="relative">
         {showSearchInput ? (
           <input
@@ -552,50 +497,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
             }`}
           />
         ) : (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
+          <div
             onClick={() => setShowSearchInput(true)}
             className="cursor-pointer"
           >
-            <path
-              d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
-              stroke="black"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-            <path
-              d="M21.0004 21.0004L16.6504 16.6504"
-              stroke="black"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+            <Search width={24} height={24} />
+          </div>
         )}
       </div>
       <div className="relative">
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          onClick={handleToggleDropdown}
-          className="cursor-pointer"
-        >
-          <path
-            d="M22 3H2L10 12.46V19L14 21V12.46L22 3Z"
-            stroke="black"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          />
-        </svg>
+        <div onClick={handleToggleDropdown} className="cursor-pointer">
+          <Filter width={24} height={24} />
+        </div>
         {isDropdownVisible && (
           <div className="absolute left-0 top-full z-10 mt-4 w-48 rounded-md bg-white shadow-lg">
             <div
@@ -611,22 +524,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
                   className="flex cursor-pointer items-center gap-[8px] px-4 py-2 text-sm text-gray-700"
                   onClick={() => handleSelectItem('status', status)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
+                  <Check
                     className={`${selectedStatuses.includes(status) ? 'visible' : 'invisible'}`}
-                  >
-                    <path
-                      d="M13.3337 4L6.00033 11.3333L2.66699 8"
-                      stroke="#334155"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                    stroke="#334155"
+                    strokeWidth={2}
+                    width={16}
+                    height={16}
+                  />
                   {status}
                 </div>
               ))}
@@ -638,22 +542,13 @@ const FilterBar: React.FC<FilterBarProps> = ({
                   className="flex cursor-pointer items-center gap-[8px] px-4 py-2 text-sm text-gray-700"
                   onClick={() => handleSelectItem('assignee', assignee)}
                 >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
+                  <Check
                     className={`${selectedAssignees.includes(assignee) ? 'visible' : 'invisible'}`}
-                  >
-                    <path
-                      d="M13.3337 4L6.00033 11.3333L2.66699 8"
-                      stroke="#334155"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                    stroke="#334155"
+                    strokeWidth={2}
+                    width={16}
+                    height={16}
+                  />
                   {assignee}
                 </div>
               ))}
@@ -783,44 +678,21 @@ const Board: React.FC<BoardProps> = ({
 
   const renderSortIcon = (key: string) => {
     return (
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="16"
-        height="16"
-        viewBox="0 0 16 16"
-        fill="none"
+      <ArrowDown
         className="ml-1"
-        style={{ visibility: sortConfig?.key === key ? 'visible' : 'hidden' }}
-      >
-        <path
-          d="M8 3.33398V12.6673"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{
-            transform:
-              sortConfig?.key === key && sortConfig.direction === 'descending'
-                ? 'rotate(180deg)'
-                : 'none',
-            transition: 'transform 0.2s ease',
-          }}
-        />
-        <path
-          d="M12.6663 8L7.99967 12.6667L3.33301 8"
-          stroke="black"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          style={{
-            transform:
-              sortConfig?.key === key && sortConfig.direction === 'descending'
-                ? 'rotate(180deg)'
-                : 'none',
-            transition: 'transform 0.2s ease',
-          }}
-        />
-      </svg>
+        style={{
+          visibility: sortConfig?.key === key ? 'visible' : 'hidden',
+          transform:
+            sortConfig?.key === key && sortConfig.direction === 'descending'
+              ? 'rotate(180deg)'
+              : 'none',
+          transition: 'transform 0.2s ease',
+        }}
+        stroke="black"
+        strokeWidth={2}
+        width={16}
+        height={16}
+      />
     )
   }
 
@@ -1168,28 +1040,12 @@ const TeamMemberModal: React.FC<TeamMemberModalProps> = ({
                 className="flex items-center justify-between px-[8px] py-[6px]"
               >
                 <div className="flex items-center gap-[8px]">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="16"
-                    height="16"
-                    viewBox="0 0 16 16"
-                    fill="none"
-                  >
-                    <path
-                      d="M13.334 2.66699H2.66732C1.93094 2.66699 1.33398 3.26395 1.33398 4.00033V12.0003C1.33398 12.7367 1.93094 13.3337 2.66732 13.3337H13.334C14.0704 13.3337 14.6673 12.7367 14.6673 12.0003V4.00033C14.6673 3.26395 14.0704 2.66699 13.334 2.66699Z"
-                      stroke="#334155"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                    <path
-                      d="M14.6673 4.66699L8.68732 8.46699C8.4815 8.59594 8.24353 8.66433 8.00065 8.66433C7.75777 8.66433 7.5198 8.59594 7.31398 8.46699L1.33398 4.66699"
-                      stroke="#334155"
-                      stroke-width="1.33333"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
-                    />
-                  </svg>
+                  <Mail
+                    stroke="#334155"
+                    strokeWidth={1.33}
+                    width={16}
+                    height={16}
+                  />
                   <span>{item.email}</span>
                 </div>
 
@@ -1340,30 +1196,13 @@ const ProjectContainer = ({ data }: { data: ProjectInfo }) => {
           </div>
         </div>
         {user != undefined && data.users[0].name === user.result.name && (
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
+          <Settings
+            width={24}
+            height={24}
             className="cursor-pointer self-center"
             onClick={handleClick}
-          >
-            <path
-              d="M12.22 2H11.78C11.2496 2 10.7409 2.21071 10.3658 2.58579C9.99072 2.96086 9.78 3.46957 9.78 4V4.18C9.77964 4.53073 9.68706 4.87519 9.51154 5.17884C9.33602 5.48248 9.08374 5.73464 8.78 5.91L8.35 6.16C8.04596 6.33554 7.70108 6.42795 7.35 6.42795C6.99893 6.42795 6.65404 6.33554 6.35 6.16L6.2 6.08C5.74107 5.81526 5.19584 5.74344 4.684 5.88031C4.17217 6.01717 3.73555 6.35154 3.47 6.81L3.25 7.19C2.98526 7.64893 2.91345 8.19416 3.05031 8.706C3.18717 9.21783 3.52154 9.65445 3.98 9.92L4.13 10.02C4.43228 10.1945 4.68362 10.4451 4.85905 10.7468C5.03448 11.0486 5.1279 11.391 5.13 11.74V12.25C5.1314 12.6024 5.03965 12.949 4.86405 13.2545C4.68844 13.5601 4.43521 13.8138 4.13 13.99L3.98 14.08C3.52154 14.3456 3.18717 14.7822 3.05031 15.294C2.91345 15.8058 2.98526 16.3511 3.25 16.81L3.47 17.19C3.73555 17.6485 4.17217 17.9828 4.684 18.1197C5.19584 18.2566 5.74107 18.1847 6.2 17.92L6.35 17.84C6.65404 17.6645 6.99893 17.5721 7.35 17.5721C7.70108 17.5721 8.04596 17.6645 8.35 17.84L8.78 18.09C9.08374 18.2654 9.33602 18.5175 9.51154 18.8212C9.68706 19.1248 9.77964 19.4693 9.78 19.82V20C9.78 20.5304 9.99072 21.0391 10.3658 21.4142C10.7409 21.7893 11.2496 22 11.78 22H12.22C12.7504 22 13.2591 21.7893 13.6342 21.4142C14.0093 21.0391 14.22 20.5304 14.22 20V19.82C14.2204 19.4693 14.3129 19.1248 14.4885 18.8212C14.664 18.5175 14.9163 18.2654 15.22 18.09L15.65 17.84C15.954 17.6645 16.2989 17.5721 16.65 17.5721C17.0011 17.5721 17.346 17.6645 17.65 17.84L17.8 17.92C18.2589 18.1847 18.8042 18.2566 19.316 18.1197C19.8278 17.9828 20.2645 17.6485 20.53 17.19L20.75 16.8C21.0147 16.3411 21.0866 15.7958 20.9497 15.284C20.8128 14.7722 20.4785 14.3356 20.02 14.07L19.87 13.99C19.5648 13.8138 19.3116 13.5601 19.136 13.2545C18.9604 12.949 18.8686 12.6024 18.87 12.25V11.75C18.8686 11.3976 18.9604 11.051 19.136 10.7455C19.3116 10.4399 19.5648 10.1862 19.87 10.01L20.02 9.92C20.4785 9.65445 20.8128 9.21783 20.9497 8.706C21.0866 8.19416 21.0147 7.64893 20.75 7.19L20.53 6.81C20.2645 6.35154 19.8278 6.01717 19.316 5.88031C18.8042 5.74344 18.2589 5.81526 17.8 6.08L17.65 6.16C17.346 6.33554 17.0011 6.42795 16.65 6.42795C16.2989 6.42795 15.954 6.33554 15.65 6.16L15.22 5.91C14.9163 5.73464 14.664 5.48248 14.4885 5.17884C14.3129 4.87519 14.2204 4.53073 14.22 4.18V4C14.22 3.46957 14.0093 2.96086 13.6342 2.58579C13.2591 2.21071 12.7504 2 12.22 2Z"
-              stroke="black"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-            <path
-              d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z"
-              stroke="black"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            />
-          </svg>
+            strokeWidth={2}
+          />
         )}
         {renderModal()}
       </div>
