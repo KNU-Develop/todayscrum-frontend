@@ -1,19 +1,18 @@
-import { Button } from '@/components/ui/button'
-import Link from 'next/link'
+// app/page.jsx
+
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
 
 export default function Home() {
-  return (
-    <main className="flex h-screen flex-col items-center justify-center gap-4 p-10">
-      <Link href="/home" prefetch>
-        <Button className="w-[300px]">
-          <p>워크스페이스로 이동하기</p>
-        </Button>
-      </Link>
-      <Link href="/login">
-        <Button className="w-[300px]">
-          <p>로그인 하기</p>
-        </Button>
-      </Link>
-    </main>
-  )
+  const cookieStore = cookies()
+  const accessToken = cookieStore.get('access')?.value
+  const refreshToken = cookieStore.get('refresh')?.value
+
+  if (accessToken && refreshToken) {
+    redirect(
+      `/auth/token?accessToken=${accessToken}&refreshToken=${refreshToken}`,
+    )
+  } else {
+    redirect('/login')
+  }
 }

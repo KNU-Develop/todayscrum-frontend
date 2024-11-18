@@ -1,6 +1,6 @@
 'use client'
 
-import { ProjectInfo, useProjectInfoQuery, useUserInfoQuery } from '@/api'
+import { ProjectInfo, useProjectInfoQuery } from '@/api'
 import Card from '@/components/Card/Card'
 import {
   ProjectCreateModal,
@@ -24,7 +24,6 @@ const Home = () => {
   const [selectedProject, setSelectedProject] = useState<ProjectInfo | null>(
     null,
   )
-  const user = useUserInfoQuery()
 
   const handleClick = () => {
     openModal('dimed', ModalTypes.CREATE)
@@ -59,7 +58,7 @@ const Home = () => {
   }
 
   return (
-    <main className="mt-5">
+    <main className="mt-5 flex flex-grow flex-col">
       <div className="mb-[30px] flex justify-end">
         <Button className="w-[180px]" onClick={handleClick}>
           <div className="flex items-center justify-center gap-2">
@@ -69,14 +68,23 @@ const Home = () => {
         </Button>
       </div>
 
-      <div className="flex flex-wrap gap-5">
-        {data?.result?.map((projectData) => (
-          <Card
-            key={projectData.id}
-            data={projectData}
-            setSelectedProject={setSelectedProject}
-          />
-        ))}
+      <div className="flex flex-grow flex-wrap gap-5">
+        {(data?.result?.length ?? 0 > 0) ? (
+          data?.result?.map((projectData) => (
+            <Card
+              key={projectData.id}
+              data={projectData}
+              setSelectedProject={setSelectedProject}
+            />
+          ))
+        ) : (
+          <div
+            className="w-full self-center text-center text-lg font-semibold"
+            onClick={handleClick}
+          >
+            프로젝트를 생성해주세요.
+          </div>
+        )}
       </div>
 
       {renderModal()}

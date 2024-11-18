@@ -1,3 +1,6 @@
+'use client'
+
+import Cookies from 'js-cookie'
 import { CalendarCheckIcon, LogOutIcon, UserIcon } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
@@ -11,6 +14,11 @@ import {
 } from '../ui/dropdown-menu'
 
 const Header: React.FC = () => {
+  const deleteCookie = () => {
+    Cookies.remove('access')
+    Cookies.remove('refresh')
+  }
+
   return (
     <header className="flex h-20 items-center justify-between py-4">
       <Link href="/home">
@@ -41,7 +49,7 @@ const Header: React.FC = () => {
               </div>
             </DropdownMenuItem>
           </Link>
-          <Link href="/">
+          <Link href="/" onClick={deleteCookie}>
             <DropdownMenuItem>
               <div className="flex items-center gap-2 p-2">
                 <LogOutIcon size={16} />
