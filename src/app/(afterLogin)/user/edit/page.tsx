@@ -99,7 +99,7 @@ const profileEdit: React.FC = () => {
   }
 
   return (
-    <div className="mt-[-80px] flex h-full items-center justify-center">
+    <div className="mt-[-80px] flex flex-grow items-center justify-center">
       <Form {...form}>
         <form
           onSubmit={form.handleSubmit(onSubmit)}
